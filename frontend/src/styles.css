@@ -1,0 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-chess-bg text-[#e2dfdb] font-sans antialiased overflow-x-hidden selection:bg-chess-primary selection:text-white;
+    min-height: 100vh;
+  }
+}
+
+/* Scrollbar sobrio y elegante */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #161512;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #363431;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4a4742;
+}
+
+/* Paneles y tarjetas con acabado profesional */
+.chess-panel {
+  background-color: #262421;
+  border: 1px solid #363431;
+}
+
+.chess-card {
+  background-color: #21201d;
+  border: 1px solid #363431;
+}
+
+.chess-card-interactive {
+  background-color: #21201d;
+  border: 1px solid #363431;
+  transition: all 0.15s ease-in-out;
+}
+
+.chess-card-interactive:hover {
+  background-color: #2a2825;
+  border-color: #4a4742;
+  transform: translateY(-1px);
+}
+
+/* Clases de apoyo para el tablero de ajedrez */
+.square-light-wood {
+  background-color: #f0d9b5;
+}
+
+.square-dark-wood {
+  background-color: #b58863;
+}
+
+.square-light-fide {
+  background-color: #eeeed2;
+}
+
+.square-dark-fide {
+  background-color: #769656;
+}
+
+/* Animaciones sutiles sin saturar la vista */
+.fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
