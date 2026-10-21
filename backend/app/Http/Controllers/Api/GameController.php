@@ -23,13 +23,37 @@ class GameController extends Controller
     ) {}
 
     /**
+     * Listar partidas activas en curso para espectadores (Chess TV / Observar en vivo).
+     */
+    public function activeGames(): JsonResponse
+    {
+        $games = Game::with([
+            'whitePlayer:id,name,username,avatar_url,presence_status',
+            'whitePlayer.ratings',
+            'blackPlayer:id,name,username,avatar_url,presence_status',
+            'blackPlayer.ratings',
+            'gameMode',
+        ])
+        ->where('game_status', 'in_progress')
+        ->orderBy('started_at', 'desc')
+        ->limit(15)
+        ->get();
+
+        return response()->json([
+            'games' => $games,
+        ]);
+    }
+
+    /**
      * Consultar el estado autoritativo completo de una partida.
      */
     public function show(string $code): JsonResponse
     {
         $game = Game::with([
-            'whitePlayer:id,name,username,avatar_url',
-            'blackPlayer:id,name,username,avatar_url',
+            'whitePlayer:id,name,username,avatar_url,presence_status',
+            'whitePlayer.ratings',
+            'blackPlayer:id,name,username,avatar_url,presence_status',
+            'blackPlayer.ratings',
             'gameMode',
             'moves',
             'chatMessages.user:id,username,avatar_url',

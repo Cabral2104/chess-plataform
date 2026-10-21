@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, NgZone } from '@angular/core';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import { environment } from '../../../environments/environment';
@@ -14,6 +14,7 @@ import {
   providedIn: 'root',
 })
 export class WebSocketService {
+  private ngZone = inject(NgZone);
   private echo: Echo<'reverb'> | null = null;
 
   constructor() {
@@ -52,8 +53,12 @@ export class WebSocketService {
                   if (!res.ok) throw new Error('Fallo al autorizar canal WebSocket');
                   return res.json();
                 })
-                .then((data) => callback(null, data))
-                .catch((err) => callback(err, null));
+                .then((data) => {
+                  this.ngZone.run(() => callback(null, data));
+                })
+                .catch((err) => {
+                  this.ngZone.run(() => callback(err, null));
+                });
             },
           };
         },
@@ -63,6 +68,7 @@ export class WebSocketService {
 
   /**
    * Conectarse al canal de presencia de una partida específica.
+   * Todos los eventos se despachan dentro de NgZone para asegurar renders instantáneos a 60 FPS.
    */
   joinGameRoom(
     gameCode: string,
@@ -78,29 +84,27 @@ export class WebSocketService {
   ): void {
     if (!this.echo) return;
 
-    const channelName = `presence-game.${gameCode}`;
-
-    this.echo.join(channelName)
+    this.echo.join(`game.${gameCode}`)
       .here((members: PresenceMember[]) => {
-        callbacks.onHere?.(members);
+        this.ngZone.run(() => callbacks.onHere?.(members));
       })
       .joining((member: PresenceMember) => {
-        callbacks.onJoining?.(member);
+        this.ngZone.run(() => callbacks.onJoining?.(member));
       })
       .leaving((member: PresenceMember) => {
-        callbacks.onLeaving?.(member);
+        this.ngZone.run(() => callbacks.onLeaving?.(member));
       })
       .listen('.MoveMade', (payload: MoveMadeEventPayload) => {
-        callbacks.onMoveMade?.(payload);
+        this.ngZone.run(() => callbacks.onMoveMade?.(payload));
       })
       .listen('.GameOver', (payload: GameOverEventPayload) => {
-        callbacks.onGameOver?.(payload);
+        this.ngZone.run(() => callbacks.onGameOver?.(payload));
       })
       .listen('.DrawOffered', (payload: DrawOfferedEventPayload) => {
-        callbacks.onDrawOffered?.(payload);
+        this.ngZone.run(() => callbacks.onDrawOffered?.(payload));
       })
       .listen('.ChatMessageSent', (payload: ChatMessageSentEventPayload) => {
-        callbacks.onChatMessage?.(payload);
+        this.ngZone.run(() => callbacks.onChatMessage?.(payload));
       });
   }
 
@@ -109,6 +113,6 @@ export class WebSocketService {
    */
   leaveGameRoom(gameCode: string): void {
     if (!this.echo) return;
-    this.echo.leave(`presence-game.${gameCode}`);
+    this.echo.leave(`game.${gameCode}`);
   }
 }

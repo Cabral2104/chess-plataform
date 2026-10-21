@@ -17,6 +17,8 @@ export class AuthService {
   isLoading = signal<boolean>(false);
   isAuthenticated = computed(() => !!this.currentUser());
 
+  private heartbeatTimer: any = null;
+
   constructor() {
     this.checkAuth();
   }
@@ -28,6 +30,7 @@ export class AuthService {
     const token = this.getToken();
     if (!token) {
       this.currentUser.set(null);
+      this.stopHeartbeat();
       return;
     }
 
@@ -36,6 +39,7 @@ export class AuthService {
       tap((res) => {
         this.currentUser.set(res.user);
         this.isLoading.set(false);
+        this.startHeartbeat();
       }),
       catchError(() => {
         this.logoutLocal();
@@ -52,6 +56,7 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, data).pipe(
       tap((res) => {
         this.setSession(res);
+        this.startHeartbeat();
       })
     );
   }
@@ -63,6 +68,7 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, data).pipe(
       tap((res) => {
         this.setSession(res);
+        this.startHeartbeat();
       })
     );
   }
@@ -71,6 +77,7 @@ export class AuthService {
    * Cierre de sesión en servidor y local.
    */
   logout(): Observable<any> {
+    this.stopHeartbeat();
     return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
       tap(() => {
         this.logoutLocal();
@@ -82,10 +89,52 @@ export class AuthService {
     );
   }
 
+  private isSendingHeartbeat = false;
+
+  /**
+   * Envía un pulso de presencia al backend para mantener presence_status = 'online'
+   */
+  sendHeartbeat(): void {
+    if (!this.getToken() || this.isSendingHeartbeat) return;
+    this.isSendingHeartbeat = true;
+    this.http.post<{ status: string; presence_status: 'online' | 'in_game' | 'offline' }>(`${this.apiUrl}/heartbeat`, {}).subscribe({
+      next: (res) => {
+        this.isSendingHeartbeat = false;
+        const user = this.currentUser();
+        if (user && user.presence_status !== res.presence_status) {
+          this.currentUser.set({
+            ...user,
+            presence_status: res.presence_status
+          });
+        }
+      },
+      error: () => {
+        this.isSendingHeartbeat = false;
+      }
+    });
+  }
+
+  startHeartbeat(): void {
+    this.stopHeartbeat();
+    this.sendHeartbeat();
+    // Enviar cada 25 segundos
+    this.heartbeatTimer = setInterval(() => {
+      this.sendHeartbeat();
+    }, 25000);
+  }
+
+  stopHeartbeat(): void {
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+  }
+
   /**
    * Limpiar sesión local.
    */
   logoutLocal(): void {
+    this.stopHeartbeat();
     localStorage.removeItem(this.TOKEN_KEY);
     this.currentUser.set(null);
   }
@@ -97,5 +146,7 @@ export class AuthService {
   private setSession(auth: AuthResponse): void {
     localStorage.setItem(this.TOKEN_KEY, auth.token);
     this.currentUser.set(auth.user);
+    this.startHeartbeat();
   }
 }
+

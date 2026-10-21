@@ -23,7 +23,7 @@ class DrawOfferedEvent implements ShouldBroadcastNow
 
     public function broadcastOn(): PresenceChannel
     {
-        return new PresenceChannel('presence-game.' . $this->gameCode);
+        return new PresenceChannel('game.' . $this->gameCode);
     }
 
     public function broadcastAs(): string

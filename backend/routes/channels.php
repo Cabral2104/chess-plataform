@@ -17,7 +17,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
  * Canal de presencia en vivo para la sala de juego.
  * Informa quiénes están conectados, quién es blancas, negras o espectador.
  */
-Broadcast::channel('presence-game.{code}', function ($user, string $code) {
+$channelCallback = function ($user, string $code) {
     $game = Game::where('code', $code)->first();
     if (!$game) {
         return false;
@@ -37,4 +37,10 @@ Broadcast::channel('presence-game.{code}', function ($user, string $code) {
         'avatar_url' => $user->avatar_url,
         'role' => $role,
     ];
-});
+};
+
+// Canal normalizado según convención de Pusher/Reverb
+Broadcast::channel('game.{code}', $channelCallback);
+
+// Alias directo para clientes que mantengan el prefijo literal
+Broadcast::channel('presence-game.{code}', $channelCallback);

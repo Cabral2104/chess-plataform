@@ -10,6 +10,7 @@ export interface GameChallenge {
   game_mode_id: number;
   color_preference: 'white' | 'black' | 'random';
   is_rated: boolean;
+  is_private: boolean;
   challenge_status: 'pending' | 'accepted' | 'declined' | 'expired' | 'canceled';
   expires_at?: string;
   created_at: string;

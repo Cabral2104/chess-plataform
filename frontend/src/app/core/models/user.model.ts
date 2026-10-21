@@ -30,3 +30,15 @@ export interface AuthResponse {
   user: User;
   token: string;
 }
+
+/**
+ * Obtener la puntuación Elo real del usuario para la modalidad indicada.
+ * Si no cuenta con registro para dicha modalidad, retorna el Elo inicial FIDE (1200).
+ */
+export function getUserRating(user: User | null | undefined, modeType: string = 'blitz'): number {
+  if (!user || !user.ratings || user.ratings.length === 0) {
+    return 1200;
+  }
+  const match = user.ratings.find(r => r.type === modeType);
+  return match ? match.rating : 1200;
+}

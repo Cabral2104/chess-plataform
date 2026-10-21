@@ -1,54 +1,77 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { GameService } from '../../core/services/game.service';
-import { GameMode, GameChallenge } from '../../core/models';
+import { GameMode, GameChallenge, getUserRating } from '../../core/models';
+import { IconComponent, IconName } from '../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-lobby',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink, IconComponent],
   template: `
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 fade-in">
       
-      <!-- Bienvenida y Perfil Rápido -->
-      <div class="chess-card rounded-xl p-5 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 border border-[#363431] shadow-lg">
-        <div class="flex items-center gap-4 text-center sm:text-left">
-          <img [src]="authService.currentUser()?.avatar_url" 
-               [alt]="authService.currentUser()?.username" 
-               class="w-14 h-14 rounded-full bg-[#2a2825] border-2 border-chess-gold/60 shadow">
+      <!-- Banner de Perfil de Jugador con Elo Real y Estadísticas FIDE -->
+      <div class="bg-[#1b1a17] border border-[#2b2925] rounded-2xl p-5 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+        <div class="flex items-center gap-4 text-center md:text-left">
+          <div class="relative">
+            <img [src]="authService.currentUser()?.avatar_url" 
+                 [alt]="authService.currentUser()?.username" 
+                 class="w-14 h-14 rounded-full bg-[#252320] border-2 border-[#c5a059] shadow-md">
+            <span class="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-[#779952] ring-2 ring-[#1b1a17]"></span>
+          </div>
           <div>
-            <div class="flex items-center gap-2 justify-center sm:justify-start">
-              <h2 class="text-xl font-bold text-slate-100">
-                Hola, {{ authService.currentUser()?.name }}
+            <div class="flex items-center gap-2 justify-center md:justify-start">
+              <h2 class="text-xl font-bold text-slate-100 tracking-tight">
+                {{ authService.currentUser()?.name }}
               </h2>
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-950 text-emerald-400 border border-emerald-800">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#22271d] text-[#86aa5d] border border-[#37452d]">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#779952]"></span>
                 En Línea
               </span>
             </div>
-            <p class="text-sm text-slate-400">
-              &#64;{{ authService.currentUser()?.username }} &bull; Puntuación Inicial: 
-              <span class="text-chess-gold font-mono font-semibold">1200 Elo</span>
-            </p>
+            
+            <!-- Ratings Elo Reales por Modalidad -->
+            <div class="flex flex-wrap items-center gap-2 mt-1.5 justify-center md:justify-start">
+              <span class="text-xs text-slate-400">&#64;{{ authService.currentUser()?.username }}</span>
+              <span class="text-slate-600">&bull;</span>
+              
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#151412] border border-[#2a2824] text-[11px] font-mono text-[#c5a059] font-semibold">
+                <app-icon name="flame" class="w-3 h-3 text-[#c5a059]"></app-icon>
+                <span>Blitz {{ blitzRating() }}</span>
+              </span>
+
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#151412] border border-[#2a2824] text-[11px] font-mono text-[#779952] font-semibold">
+                <app-icon name="timer" class="w-3 h-3 text-[#779952]"></app-icon>
+                <span>Rapid {{ rapidRating() }}</span>
+              </span>
+
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#151412] border border-[#2a2824] text-[11px] font-mono text-amber-300 font-semibold">
+                <app-icon name="lightning" class="w-3 h-3 text-amber-300"></app-icon>
+                <span>Bullet {{ bulletRating() }}</span>
+              </span>
+            </div>
           </div>
         </div>
 
-        <div class="flex items-center gap-6 text-center sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-[#302e2b] w-full sm:w-auto justify-around sm:justify-end">
-          <div>
-            <span class="text-xs text-slate-400 block uppercase tracking-wider">Partidas</span>
+        <!-- Métricas de Desempeño Competitivo -->
+        <div class="flex items-center gap-4 text-center md:text-right border-t md:border-t-0 pt-3 md:pt-0 border-[#292723] w-full md:w-auto justify-around md:justify-end">
+          <div class="bg-[#151412] px-3.5 py-2 rounded-xl border border-[#262420] min-w-[75px]">
+            <span class="text-[10px] text-slate-400 block uppercase tracking-wider">Partidas</span>
             <span class="text-base font-bold text-slate-200 font-mono">
               {{ authService.currentUser()?.total_games || 0 }}
             </span>
           </div>
-          <div>
-            <span class="text-xs text-slate-400 block uppercase tracking-wider">Victorias</span>
-            <span class="text-base font-bold text-emerald-400 font-mono">
+          <div class="bg-[#151412] px-3.5 py-2 rounded-xl border border-[#262420] min-w-[75px]">
+            <span class="text-[10px] text-slate-400 block uppercase tracking-wider">Victorias</span>
+            <span class="text-base font-bold text-[#86aa5d] font-mono">
               {{ authService.currentUser()?.total_wins || 0 }}
             </span>
           </div>
-          <div>
-            <span class="text-xs text-slate-400 block uppercase tracking-wider">Derrotas</span>
+          <div class="bg-[#151412] px-3.5 py-2 rounded-xl border border-[#262420] min-w-[75px]">
+            <span class="text-[10px] text-slate-400 block uppercase tracking-wider">Derrotas</span>
             <span class="text-base font-bold text-red-400 font-mono">
               {{ authService.currentUser()?.total_losses || 0 }}
             </span>
@@ -56,34 +79,32 @@ import { GameMode, GameChallenge } from '../../core/models';
         </div>
       </div>
 
-      <!-- Contenedor Principal: Modos de Juego y Retos Abiertos -->
+      <!-- Contenedor Principal de la Pestaña "Jugar" -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
-        <!-- Columna Izquierda: Crear Partida (8 columnas) -->
-        <div class="lg:col-span-7 xl:col-span-8 space-y-6">
+        <!-- Columna Principal: Creador Personalizado de Partidas (8 columnas) -->
+        <div class="lg:col-span-8 space-y-6">
           
-          <div class="chess-panel rounded-xl p-6 border border-[#363431] shadow-xl">
+          <div class="bg-[#1b1a17] rounded-2xl p-6 border border-[#2b2925] shadow-2xl">
             <div class="flex items-center justify-between mb-5">
               <div>
-                <h3 class="text-lg font-bold text-slate-100 tracking-tight flex items-center gap-2">
-                  <svg class="w-5 h-5 text-chess-gold" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 22H5v-2h14v2M17.15 7.62c-.32-.23-.74-.3-1.12-.17l-.87.3c-.34.12-.72.04-.98-.21L13 6.4V4c0-1.1-.9-2-2-2h-.5c-.28 0-.5.22-.5.5v1.65l-2.07 2.08c-.46.46-.77 1.05-.88 1.69l-.65 3.86c-.05.28.04.56.24.75.2.19.48.27.75.22l2.11-.35v3.1c0 .83.67 1.5 1.5 1.5h4c.83 0 1.5-.67 1.5-1.5v-2.38l1.45-1.45c.42-.42.66-.99.66-1.58v-4.5c0-.62-.26-1.22-.76-1.63z"/>
-                  </svg>
-                  1. Selecciona el Ritmo de Juego
+                <h3 class="text-base font-bold text-slate-100 tracking-tight flex items-center gap-2">
+                  <app-icon name="swords" class="w-5 h-5 text-[#c5a059]"></app-icon>
+                  <span>1. Selecciona el Ritmo de Juego</span>
                 </h3>
-                <p class="text-xs text-slate-400 mt-0.5">Tiempos reglamentarios con incremento oficial FIDE</p>
+                <p class="text-xs text-slate-400 mt-0.5">Tiempos oficiales FIDE con incremento por movimiento</p>
               </div>
 
-              <span class="text-xs font-mono text-chess-gold bg-amber-950/40 px-2.5 py-1 rounded border border-amber-800/60">
+              <span class="text-[10px] font-mono text-[#c5a059] bg-[#29251e] px-2.5 py-1 rounded-md border border-[#443d2f] font-semibold uppercase tracking-wider">
                 FIDE Standard
               </span>
             </div>
 
-            <!-- Grilla de Modos de Juego -->
+            <!-- Grilla de Modos de Juego Vectoriales -->
             @if (isLoadingModes()) {
               <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 @for (i of [1,2,3,4,5,6]; track i) {
-                  <div class="h-24 bg-[#1f1e1b] rounded-lg animate-pulse border border-[#302e2b]"></div>
+                  <div class="h-24 bg-[#151412] rounded-xl animate-pulse border border-[#24221f]"></div>
                 }
               </div>
             } @else {
@@ -91,117 +112,158 @@ import { GameMode, GameChallenge } from '../../core/models';
                 @for (mode of gameModes(); track mode.id) {
                   <button type="button" 
                           (click)="selectMode(mode)"
-                          [class.border-chess-gold]="selectedMode()?.id === mode.id"
-                          [class.bg-[#2f2c27]]="selectedMode()?.id === mode.id"
-                          class="p-3.5 rounded-lg bg-[#21201d] border border-[#383531] hover:border-[#4f4b45] hover:bg-[#282622] transition-all text-left flex flex-col justify-between group relative overflow-hidden">
+                          [class.border-[#c5a059]]="selectedMode()?.id === mode.id"
+                          [class.bg-[#262420]]="selectedMode()?.id === mode.id"
+                          [class.shadow-md]="selectedMode()?.id === mode.id"
+                          class="p-4 rounded-xl bg-[#161512] border border-[#292723] hover:border-[#423f38] hover:bg-[#201f1c] transition-all text-left flex flex-col justify-between group relative overflow-hidden">
                     
                     @if (mode.slug === 'blitz-3-2') {
-                      <span class="absolute top-1.5 right-1.5 text-[9px] bg-chess-gold/20 text-chess-gold px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider">
-                        Popular
+                      <span class="absolute top-2 right-2 text-[8px] bg-[#c5a059]/15 text-[#c5a059] border border-[#c5a059]/30 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                        Estándar
                       </span>
                     }
 
-                    <div class="flex items-center gap-2 mb-2">
-                      @if (mode.type === 'bullet') {
-                        <span class="text-amber-400 text-base">⚡</span>
-                      } @else if (mode.type === 'blitz') {
-                        <span class="text-orange-400 text-base">🔥</span>
-                      } @else {
-                        <span class="text-emerald-400 text-base">⏱️</span>
-                      }
+                    <div class="flex items-center gap-2.5 mb-2.5">
+                      <div class="w-7 h-7 rounded-lg bg-[#22201c] border border-[#33302a] flex items-center justify-center text-slate-300 group-hover:text-white transition-colors">
+                        <app-icon [name]="getModeIcon(mode.type)" class="w-4 h-4"></app-icon>
+                      </div>
                       <span class="font-bold text-sm text-slate-100 group-hover:text-white">
                         {{ mode.name }}
                       </span>
                     </div>
 
-                    <div class="text-[11px] text-slate-400 font-mono">
-                      {{ (mode.initial_time_seconds / 60) }} min + {{ mode.increment_seconds }}s
+                    <div class="text-[11px] text-slate-400 font-mono flex items-center justify-between">
+                      <span>{{ (mode.initial_time_seconds / 60) }} min</span>
+                      <span class="text-slate-500">+{{ mode.increment_seconds }}s</span>
                     </div>
                   </button>
                 }
               </div>
             }
 
-            <!-- Selector de Piezas y Modo Rankeado -->
-            <div class="mt-6 pt-5 border-t border-[#302e2b] grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Selector de Opciones: Color, Modalidad y Privacidad -->
+            <div class="mt-6 pt-5 border-t border-[#292724] space-y-5">
               
-              <!-- Preferencia de Color -->
-              <div>
-                <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-2">
-                  2. Tu Color de Piezas
-                </label>
-                <div class="grid grid-cols-3 gap-2">
-                  <button type="button" 
-                          (click)="colorPreference.set('white')"
-                          [class.border-chess-gold]="colorPreference() === 'white'"
-                          [class.bg-[#302e2a]]="colorPreference() === 'white'"
-                          class="py-2 px-3 rounded-lg bg-[#21201d] border border-[#383531] text-xs font-medium text-slate-200 flex flex-col items-center gap-1 hover:bg-[#282622] transition-all">
-                    <span class="w-4 h-4 rounded-full bg-[#f0d9b5] border border-white/50 shadow-sm"></span>
-                    <span>Blancas</span>
-                  </button>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <!-- 2. Preferencia de Color -->
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                    2. Color de Piezas
+                  </label>
+                  <div class="grid grid-cols-3 gap-2">
+                    <button type="button" 
+                            (click)="colorPreference.set('white')"
+                            [class.border-[#c5a059]]="colorPreference() === 'white'"
+                            [class.bg-[#262420]]="colorPreference() === 'white'"
+                            class="py-2.5 px-3 rounded-xl bg-[#161512] border border-[#292723] text-xs font-semibold text-slate-200 flex flex-col items-center gap-1.5 hover:bg-[#201f1c] transition-all">
+                      <span class="w-4 h-4 rounded-full bg-[#f0d9b5] border border-white/60 shadow-sm"></span>
+                      <span>Blancas</span>
+                    </button>
 
-                  <button type="button" 
-                          (click)="colorPreference.set('random')"
-                          [class.border-chess-gold]="colorPreference() === 'random'"
-                          [class.bg-[#302e2a]]="colorPreference() === 'random'"
-                          class="py-2 px-3 rounded-lg bg-[#21201d] border border-[#383531] text-xs font-medium text-slate-200 flex flex-col items-center gap-1 hover:bg-[#282622] transition-all">
-                    <span class="w-4 h-4 rounded-full bg-gradient-to-r from-[#f0d9b5] to-[#262421] border border-white/30"></span>
-                    <span>Aleatorio</span>
-                  </button>
+                    <button type="button" 
+                            (click)="colorPreference.set('random')"
+                            [class.border-[#c5a059]]="colorPreference() === 'random'"
+                            [class.bg-[#262420]]="colorPreference() === 'random'"
+                            class="py-2.5 px-3 rounded-xl bg-[#161512] border border-[#292723] text-xs font-semibold text-slate-200 flex flex-col items-center gap-1.5 hover:bg-[#201f1c] transition-all">
+                      <span class="w-4 h-4 rounded-full bg-gradient-to-r from-[#f0d9b5] to-[#201e1b] border border-white/30"></span>
+                      <span>Aleatorio</span>
+                    </button>
 
-                  <button type="button" 
-                          (click)="colorPreference.set('black')"
-                          [class.border-chess-gold]="colorPreference() === 'black'"
-                          [class.bg-[#302e2a]]="colorPreference() === 'black'"
-                          class="py-2 px-3 rounded-lg bg-[#21201d] border border-[#383531] text-xs font-medium text-slate-200 flex flex-col items-center gap-1 hover:bg-[#282622] transition-all">
-                    <span class="w-4 h-4 rounded-full bg-[#21201d] border border-[#4a4742]"></span>
-                    <span>Negras</span>
-                  </button>
+                    <button type="button" 
+                            (click)="colorPreference.set('black')"
+                            [class.border-[#c5a059]]="colorPreference() === 'black'"
+                            [class.bg-[#262420]]="colorPreference() === 'black'"
+                            class="py-2.5 px-3 rounded-xl bg-[#161512] border border-[#292723] text-xs font-semibold text-slate-200 flex flex-col items-center gap-1.5 hover:bg-[#201f1c] transition-all">
+                      <span class="w-4 h-4 rounded-full bg-[#201e1b] border border-[#3e3b35]"></span>
+                      <span>Negras</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 3. Tipo de Partida (Rankeada vs Amistosa) -->
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                    3. Modalidad
+                  </label>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button type="button" 
+                            (click)="isRated.set(true)"
+                            [class.border-[#c5a059]]="isRated()"
+                            [class.bg-[#262420]]="isRated()"
+                            class="py-2.5 px-3 rounded-xl bg-[#161512] border border-[#292723] text-xs font-semibold text-slate-200 flex items-center justify-center gap-2 hover:bg-[#201f1c] transition-all">
+                      <app-icon name="trophy" class="w-3.5 h-3.5 text-[#c5a059]"></app-icon>
+                      <span>Rankeada</span>
+                    </button>
+
+                    <button type="button" 
+                            (click)="isRated.set(false)"
+                            [class.border-[#c5a059]]="!isRated()"
+                            [class.bg-[#262420]]="!isRated()"
+                            class="py-2.5 px-3 rounded-xl bg-[#161512] border border-[#292723] text-xs font-semibold text-slate-200 flex items-center justify-center gap-2 hover:bg-[#201f1c] transition-all">
+                      <app-icon name="handshake" class="w-3.5 h-3.5 text-slate-400"></app-icon>
+                      <span>Casual</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <!-- Tipo de Partida (Rankeada vs Amistosa) -->
+              <!-- 4. Privacidad de la Partida (Pública vs Privada con Código) -->
               <div>
-                <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-2">
-                  3. Tipo de Partida
+                <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                  4. Tipo de Sala
                 </label>
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button type="button" 
-                          (click)="isRated.set(true)"
-                          [class.border-chess-gold]="isRated()"
-                          [class.bg-[#302e2a]]="isRated()"
-                          class="py-2 px-3 rounded-lg bg-[#21201d] border border-[#383531] text-xs font-medium text-slate-200 flex items-center justify-center gap-1.5 hover:bg-[#282622] transition-all">
-                    <span class="text-chess-gold text-xs">🏆</span>
-                    <span>Rankeada</span>
+                          (click)="isPrivate.set(false)"
+                          [class.border-[#779952]]="!isPrivate()"
+                          [class.bg-[#21271d]]="!isPrivate()"
+                          class="p-3.5 rounded-xl bg-[#161512] border border-[#292723] text-left hover:bg-[#1f221a] transition-all flex items-start gap-3">
+                    <div class="p-2 rounded-lg bg-[#283222] text-[#86aa5d] shrink-0 mt-0.5">
+                      <app-icon name="board" class="w-4 h-4"></app-icon>
+                    </div>
+                    <div>
+                      <span class="block text-xs font-bold text-slate-100">Sala Pública Abierta</span>
+                      <span class="text-[11px] text-slate-400 mt-0.5 block">Visible para toda la comunidad en "Salas y Retos".</span>
+                    </div>
                   </button>
 
                   <button type="button" 
-                          (click)="isRated.set(false)"
-                          [class.border-chess-gold]="!isRated()"
-                          [class.bg-[#302e2a]]="!isRated()"
-                          class="py-2 px-3 rounded-lg bg-[#21201d] border border-[#383531] text-xs font-medium text-slate-200 flex items-center justify-center gap-1.5 hover:bg-[#282622] transition-all">
-                    <span class="text-slate-400 text-xs">🤝</span>
-                    <span>Amistosa</span>
+                          (click)="isPrivate.set(true)"
+                          [class.border-[#c5a059]]="isPrivate()"
+                          [class.bg-[#26241e]]="isPrivate()"
+                          class="p-3.5 rounded-xl bg-[#161512] border border-[#292723] text-left hover:bg-[#24211a] transition-all flex items-start gap-3">
+                    <div class="p-2 rounded-lg bg-[#332a1b] text-[#c5a059] shrink-0 mt-0.5">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <span class="block text-xs font-bold text-slate-100">Sala Privada con Invitación</span>
+                      <span class="text-[11px] text-slate-400 mt-0.5 block">Solo ingresan mediante código o enlace directo.</span>
+                    </div>
                   </button>
                 </div>
               </div>
 
             </div>
 
-            <!-- Botón Crear Reto -->
+            <!-- Botón Principal: Crear Sala de Partida -->
             <div class="mt-6">
-              <button type="button" 
+              <button type="submit" 
                       (click)="onCreateChallenge()"
                       [disabled]="!selectedMode() || isCreating()"
-                      class="w-full py-3.5 px-6 rounded-lg bg-chess-primary hover:bg-chess-primaryHover disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-base shadow-lg transition-all flex items-center justify-center gap-2 transform active:scale-98">
+                      class="w-full py-4 px-6 rounded-xl bg-[#779952] hover:bg-[#86aa5d] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm shadow-xl transition-all flex items-center justify-center gap-2 transform active:scale-98">
                 @if (isCreating()) {
                   <svg class="animate-spin w-5 h-5 text-white" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                   </svg>
-                  <span>Creando sala de partida...</span>
+                  <span>Generando sala de juego...</span>
                 } @else {
-                  <span>Crear Sala de Partida ({{ selectedMode()?.name || 'Selecciona un ritmo' }})</span>
+                  <app-icon name="plus" class="w-4 h-4"></app-icon>
+                  <span>
+                    Crear Sala {{ isPrivate() ? 'Privada' : 'Pública' }} ({{ selectedMode()?.name || 'Selecciona un ritmo' }})
+                  </span>
                 }
               </button>
             </div>
@@ -210,84 +272,129 @@ import { GameMode, GameChallenge } from '../../core/models';
 
         </div>
 
-        <!-- Columna Derecha: Retos Públicos Abiertos (4 columnas) -->
-        <div class="lg:col-span-5 xl:col-span-4 space-y-6">
+        <!-- Columna Derecha: Emparejamiento Rápido y Acceso a la Comunidad (4 columnas) -->
+        <div class="lg:col-span-4 space-y-6">
           
-          <div class="chess-panel rounded-xl p-5 border border-[#363431] shadow-xl">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Retos en Vivo
+          <!-- Tarjeta de Emparejamiento Rápido (1-Click Matchmaking) -->
+          <div class="bg-[#1b1a17] rounded-2xl p-5 border border-[#2b2925] shadow-2xl">
+            <div class="flex items-center gap-2 mb-3 pb-3 border-b border-[#292723]">
+              <app-icon name="lightning" class="w-4 h-4 text-[#c5a059]"></app-icon>
+              <h3 class="text-sm font-bold text-slate-100 uppercase tracking-wider">
+                Partida Rápida (1-Click)
               </h3>
-              <button (click)="loadOpenChallenges()" class="text-xs text-slate-400 hover:text-white p-1">
-                🔄 Refrescar
+            </div>
+            <p class="text-xs text-slate-400 mb-4">
+              Comienza a jugar al instante en las modalidades más populares sin configuración previa.
+            </p>
+
+            <div class="space-y-2.5">
+              <button type="button" 
+                      (click)="quickMatch('blitz-3-2')" 
+                      class="w-full p-3 rounded-xl bg-[#161512] border border-[#2b2925] hover:border-[#c5a059] hover:bg-[#201f1c] text-left transition-all flex items-center justify-between group">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-[#27231c] border border-[#3d362a] flex items-center justify-center text-[#c5a059]">
+                    <app-icon name="flame" class="w-4 h-4"></app-icon>
+                  </div>
+                  <div>
+                    <span class="text-xs font-bold text-slate-200 group-hover:text-white block">Blitz 3+2 min</span>
+                    <span class="text-[10px] text-slate-400 font-mono">FIDE Standard &bull; Rankeada</span>
+                  </div>
+                </div>
+                <app-icon name="swords" class="w-4 h-4 text-slate-500 group-hover:text-[#c5a059] transition-colors"></app-icon>
+              </button>
+
+              <button type="button" 
+                      (click)="quickMatch('rapid-10-0')" 
+                      class="w-full p-3 rounded-xl bg-[#161512] border border-[#2b2925] hover:border-[#779952] hover:bg-[#201f1c] text-left transition-all flex items-center justify-between group">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-[#20271c] border border-[#2f3d27] flex items-center justify-center text-[#779952]">
+                    <app-icon name="timer" class="w-4 h-4"></app-icon>
+                  </div>
+                  <div>
+                    <span class="text-xs font-bold text-slate-200 group-hover:text-white block">Rapid 10 min</span>
+                    <span class="text-[10px] text-slate-400 font-mono">Reflexión Estratégica &bull; Rankeada</span>
+                  </div>
+                </div>
+                <app-icon name="swords" class="w-4 h-4 text-slate-500 group-hover:text-[#779952] transition-colors"></app-icon>
+              </button>
+
+              <button type="button" 
+                      (click)="quickMatch('bullet-1-0')" 
+                      class="w-full p-3 rounded-xl bg-[#161512] border border-[#2b2925] hover:border-amber-400 hover:bg-[#201f1c] text-left transition-all flex items-center justify-between group">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-[#27231c] border border-[#443825] flex items-center justify-center text-amber-400">
+                    <app-icon name="lightning" class="w-4 h-4"></app-icon>
+                  </div>
+                  <div>
+                    <span class="text-xs font-bold text-slate-200 group-hover:text-white block">Bullet 1 min</span>
+                    <span class="text-[10px] text-slate-400 font-mono">Velocidad Extrema &bull; Rankeada</span>
+                  </div>
+                </div>
+                <app-icon name="swords" class="w-4 h-4 text-slate-500 group-hover:text-amber-400 transition-colors"></app-icon>
               </button>
             </div>
+          </div>
 
-            @if (openChallenges().length === 0) {
-              <div class="py-10 text-center text-slate-400 text-sm">
-                <span class="text-3xl block mb-2">♟️</span>
-                No hay retos abiertos en este momento.
-                <p class="text-xs text-slate-500 mt-1">¡Sé el primero en crear uno a la izquierda!</p>
+          <!-- Acceso Directo a Salas y Retos de la Comunidad -->
+          <div class="bg-gradient-to-br from-[#1b1a17] to-[#141311] rounded-2xl p-5 border border-[#35322b] shadow-2xl relative overflow-hidden">
+            <div class="flex items-center gap-3 mb-2.5">
+              <div class="w-8 h-8 rounded-lg bg-[#292621] border border-[#3e3931] flex items-center justify-center text-[#c5a059]">
+                <app-icon name="board" class="w-4 h-4"></app-icon>
               </div>
-            } @else {
-              <div class="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
-                @for (chal of openChallenges(); track chal.id) {
-                  <div class="p-3 rounded-lg bg-[#21201d] border border-[#33302c] hover:border-[#4a4742] transition-colors flex items-center justify-between gap-3">
-                    
-                    <div class="flex items-center gap-2.5">
-                      <img [src]="chal.challenger?.avatar_url" class="w-8 h-8 rounded-full bg-[#2a2825] border border-[#3e3b37]">
-                      <div>
-                        <span class="text-xs font-semibold text-slate-200 block leading-tight">
-                          {{ chal.challenger?.username }}
-                        </span>
-                        <span class="text-[10px] text-chess-gold font-mono">
-                          {{ chal.game_mode?.name }} &bull; {{ chal.is_rated ? 'Rankeada' : 'Casual' }}
-                        </span>
-                      </div>
-                    </div>
+              <h3 class="text-sm font-bold text-slate-100">
+                Hub de Salas y Retos
+              </h3>
+            </div>
+            
+            <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+              Explora las salas públicas creadas por otros jugadores, únete con un código de sala privada o mira partidas en directo.
+            </p>
 
-                    @if (chal.challenger_id === authService.currentUser()?.id) {
-                      <span class="text-xs text-slate-500 font-mono italic">Tu reto</span>
-                    } @else {
-                      <button (click)="acceptChallenge(chal.code)" 
-                              class="px-3 py-1.5 rounded bg-chess-primary hover:bg-chess-primaryHover text-white text-xs font-semibold shadow transition-all active:scale-95">
-                        Jugar
-                      </button>
-                    }
-
-                  </div>
-                }
-              </div>
-            }
-
+            <a routerLink="/challenges" 
+               class="w-full py-2.5 px-4 rounded-xl bg-[#252320] hover:bg-[#302d28] border border-[#3e3a32] text-xs font-semibold text-slate-200 hover:text-white flex items-center justify-center gap-2 transition-all">
+              <span>Explorar Salas y Espectador</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
           </div>
 
         </div>
 
       </div>
 
-      <!-- MODAL DE SALA DE ESPERA (Reto propio creado) -->
+      <!-- MODAL DE SALA DE ESPERA (Reto propio creado: Pública o Privada) -->
       @if (activeChallenge()) {
         <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 fade-in">
-          <div class="w-full max-w-md bg-[#21201d] border border-[#4a4742] rounded-xl shadow-2xl p-6 sm:p-7 text-center">
+          <div class="w-full max-w-md bg-[#1b1a17] border border-[#3f3b33] rounded-2xl shadow-2xl p-6 sm:p-7 text-center">
             
-            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-[#2c2a26] border border-[#3e3b37] flex items-center justify-center text-chess-gold animate-bounce">
-              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2a10 10 0 1010 10A10 10 0 0012 2zm1 14.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm0-4a1 1 0 01-2 0V7a1 1 0 012 0z"/>
-              </svg>
+            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-[#262420] border border-[#3d3a33] flex items-center justify-center text-[#c5a059] animate-pulse">
+              <app-icon name="hourglass" class="w-6 h-6 text-[#c5a059]"></app-icon>
             </div>
 
-            <h3 class="text-xl font-bold text-slate-100">Sala de Espera Creada</h3>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2"
+                 [class.bg-[#22271d]]="!activeChallenge()?.is_private"
+                 [class.text-[#86aa5d]]="!activeChallenge()?.is_private"
+                 [class.border-[#37452d]]="!activeChallenge()?.is_private"
+                 [class.bg-[#2b251a]]="activeChallenge()?.is_private"
+                 [class.text-[#c5a059]]="activeChallenge()?.is_private"
+                 [class.border-[#483c27]]="activeChallenge()?.is_private">
+              <span class="w-1.5 h-1.5 rounded-full" [class.bg-[#779952]]="!activeChallenge()?.is_private" [class.bg-[#c5a059]]="activeChallenge()?.is_private"></span>
+              <span>{{ activeChallenge()?.is_private ? 'Sala Privada' : 'Sala Pública Abierta' }}</span>
+            </div>
+
+            <h3 class="text-xl font-bold text-slate-100">Sala de Espera de Partida</h3>
             <p class="text-xs text-slate-400 mt-1">
               Ritmo: <strong class="text-slate-200">{{ activeChallenge()?.game_mode?.name }}</strong> &bull; 
               Piezas: <strong class="text-slate-200 capitalize">{{ activeChallenge()?.color_preference }}</strong>
             </p>
 
             <!-- Código de Sala -->
-            <div class="my-5 p-3.5 rounded-lg bg-[#181715] border border-[#363431]">
-              <span class="text-[11px] text-slate-400 uppercase tracking-widest block mb-1">Código de Invitación</span>
-              <span class="text-2xl font-mono font-bold tracking-widest text-chess-gold">
+            <div class="my-5 p-3.5 rounded-xl bg-[#131210] border border-[#2d2a26]">
+              <span class="text-[10px] text-slate-400 uppercase tracking-widest block mb-1">
+                {{ activeChallenge()?.is_private ? 'Código de Invitación Privado' : 'Código de Sala Oficial' }}
+              </span>
+              <span class="text-2xl font-mono font-bold tracking-widest text-[#c5a059]">
                 {{ activeChallenge()?.code }}
               </span>
             </div>
@@ -295,17 +402,21 @@ import { GameMode, GameChallenge } from '../../core/models';
             <!-- Botón Copiar Enlace -->
             <div class="space-y-3">
               <button (click)="copyChallengeLink()" 
-                      class="w-full py-2.5 px-4 rounded-lg bg-[#2e2b27] hover:bg-[#383530] border border-[#45423d] text-slate-100 text-xs font-semibold flex items-center justify-center gap-2 transition-colors">
+                      class="w-full py-2.5 px-4 rounded-xl bg-[#252320] hover:bg-[#2f2c27] border border-[#3d3a33] text-slate-100 text-xs font-semibold flex items-center justify-center gap-2 transition-colors">
                 @if (copiedLink()) {
-                  <span class="text-emerald-400">¡Enlace copiado al portapapeles! ✓</span>
+                  <app-icon name="check" class="w-4 h-4 text-[#86aa5d]"></app-icon>
+                  <span class="text-[#86aa5d]">¡Enlace copiado al portapapeles!</span>
                 } @else {
-                  <span>📋 Copiar Enlace de Invitación</span>
+                  <app-icon name="copy" class="w-4 h-4 text-slate-300"></app-icon>
+                  <span>Copiar Enlace de Invitación</span>
                 }
               </button>
 
               <div class="flex items-center justify-center gap-2 text-xs text-slate-400 pt-1">
-                <span class="w-2 h-2 rounded-full bg-chess-gold animate-ping"></span>
-                <span>Esperando a que tu rival ingrese a la sala...</span>
+                <span class="w-2 h-2 rounded-full bg-[#c5a059] animate-ping"></span>
+                <span>
+                  {{ activeChallenge()?.is_private ? 'Esperando a que tu amigo ingrese con el código...' : 'Esperando oponente en la comunidad...' }}
+                </span>
               </div>
 
               <button (click)="cancelActiveChallenge()" 
@@ -330,26 +441,30 @@ export class LobbyComponent implements OnInit, OnDestroy {
   selectedMode = signal<GameMode | null>(null);
   colorPreference = signal<'white' | 'black' | 'random'>('random');
   isRated = signal<boolean>(true);
-  openChallenges = signal<GameChallenge[]>([]);
+  isPrivate = signal<boolean>(false);
   activeChallenge = signal<GameChallenge | null>(null);
 
   isLoadingModes = signal<boolean>(true);
   isCreating = signal<boolean>(false);
   copiedLink = signal<boolean>(false);
 
+  // Ratings Elo Reales extraídos de la base de datos
+  blitzRating = computed(() => getUserRating(this.authService.currentUser(), 'blitz'));
+  rapidRating = computed(() => getUserRating(this.authService.currentUser(), 'rapid'));
+  bulletRating = computed(() => getUserRating(this.authService.currentUser(), 'bullet'));
+
   private pollInterval: any;
+  private isCheckingChallenge = false;
 
   ngOnInit(): void {
     this.loadGameModes();
-    this.loadOpenChallenges();
 
-    // Sondeo periódico cada 3.5 segundos para detectar nuevos retos y si aceptan el tuyo
+    // Verificación periódica si el reto activo fue aceptado por un oponente (cada 4s)
     this.pollInterval = setInterval(() => {
-      this.loadOpenChallenges();
       if (this.activeChallenge()) {
         this.checkIfActiveChallengeAccepted();
       }
-    }, 3500);
+    }, 4000);
   }
 
   ngOnDestroy(): void {
@@ -358,26 +473,27 @@ export class LobbyComponent implements OnInit, OnDestroy {
     }
   }
 
+  getModeIcon(type: string): IconName {
+    switch (type) {
+      case 'bullet': return 'lightning';
+      case 'blitz': return 'flame';
+      case 'rapid': return 'timer';
+      case 'classical': return 'hourglass';
+      default: return 'timer';
+    }
+  }
+
   loadGameModes(): void {
     this.isLoadingModes.set(true);
     this.gameService.getGameModes().subscribe({
       next: (res) => {
         this.gameModes.set(res.game_modes);
-        // Seleccionar Blitz 3+2 por defecto
         const defaultMode = res.game_modes.find(m => m.slug === 'blitz-3-2') || res.game_modes[0];
         this.selectedMode.set(defaultMode);
         this.isLoadingModes.set(false);
       },
       error: () => {
         this.isLoadingModes.set(false);
-      }
-    });
-  }
-
-  loadOpenChallenges(): void {
-    this.gameService.getOpenChallenges().subscribe({
-      next: (res) => {
-        this.openChallenges.set(res.challenges);
       }
     });
   }
@@ -395,6 +511,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
       game_mode_id: mode.id,
       color_preference: this.colorPreference(),
       is_rated: this.isRated(),
+      is_private: this.isPrivate(),
     }).subscribe({
       next: (res) => {
         this.isCreating.set(false);
@@ -403,31 +520,28 @@ export class LobbyComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.isCreating.set(false);
         if (err.error?.challenge) {
-          // Ya tenía un reto activo
           this.activeChallenge.set(err.error.challenge);
         }
       }
     });
   }
 
-  acceptChallenge(code: string): void {
-    this.gameService.acceptChallenge(code).subscribe({
-      next: (res) => {
-        // Redirigir a la partida generada
-        this.router.navigate(['/game', res.game.code]);
-      },
-      error: (err) => {
-        alert(err.error?.message || 'No se pudo aceptar el reto.');
-        this.loadOpenChallenges();
-      }
-    });
+  quickMatch(modeSlug: string): void {
+    const mode = this.gameModes().find(m => m.slug === modeSlug);
+    if (!mode) return;
+
+    this.selectedMode.set(mode);
+    this.colorPreference.set('random');
+    this.isRated.set(true);
+    this.isPrivate.set(false);
+    this.onCreateChallenge();
   }
 
   copyChallengeLink(): void {
     const code = this.activeChallenge()?.code;
     if (!code) return;
 
-    const url = `${window.location.origin}/challenges/${code}`;
+    const url = `${window.location.origin}/game/${code}`;
     navigator.clipboard.writeText(url).then(() => {
       this.copiedLink.set(true);
       setTimeout(() => this.copiedLink.set(false), 2500);
@@ -436,15 +550,19 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   checkIfActiveChallengeAccepted(): void {
     const active = this.activeChallenge();
-    if (!active) return;
+    if (!active || this.isCheckingChallenge) return;
 
+    this.isCheckingChallenge = true;
     this.gameService.getChallenge(active.code).subscribe({
       next: (res) => {
+        this.isCheckingChallenge = false;
         if (res.challenge.challenge_status === 'accepted' && res.challenge.game) {
-          // ¡El oponente aceptó! Redirigir al tablero
           this.activeChallenge.set(null);
           this.router.navigate(['/game', res.challenge.game.code]);
         }
+      },
+      error: () => {
+        this.isCheckingChallenge = false;
       }
     });
   }
@@ -456,7 +574,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
     this.gameService.cancelChallenge(code).subscribe({
       next: () => {
         this.activeChallenge.set(null);
-        this.loadOpenChallenges();
       }
     });
   }

@@ -18,9 +18,10 @@ class GameChallengeController extends Controller
      */
     public function index(): JsonResponse
     {
-        $challenges = GameChallenge::with(['challenger', 'gameMode'])
+        $challenges = GameChallenge::with(['challenger.ratings', 'gameMode'])
             ->where('challenge_status', 'pending')
             ->whereNull('challenged_id') // Solo retos abiertos públicos
+            ->where('is_private', false) // Excluir salas privadas de amigos
             ->where(function ($query) {
                 $query->whereNull('expires_at')
                       ->orWhere('expires_at', '>', now());
@@ -35,7 +36,7 @@ class GameChallengeController extends Controller
     }
 
     /**
-     * Crear un nuevo reto o sala privada.
+     * Crear un nuevo reto (público para la comunidad o privado con enlace).
      */
     public function store(Request $request): JsonResponse
     {
@@ -43,6 +44,7 @@ class GameChallengeController extends Controller
             'game_mode_id' => ['required', 'exists:game_modes,id'],
             'color_preference' => ['required', 'in:white,black,random'],
             'is_rated' => ['boolean'],
+            'is_private' => ['nullable', 'boolean'],
             'challenged_id' => ['nullable', 'exists:users,id', 'different:challenger_id'],
         ]);
 
@@ -60,7 +62,7 @@ class GameChallengeController extends Controller
         if ($existing) {
             return response()->json([
                 'message' => 'Ya tienes un reto pendiente activo.',
-                'challenge' => $existing->load(['gameMode', 'challenger']),
+                'challenge' => $existing->load(['gameMode', 'challenger.ratings']),
             ], 400);
         }
 
@@ -74,6 +76,7 @@ class GameChallengeController extends Controller
             'game_mode_id' => $validated['game_mode_id'],
             'color_preference' => $validated['color_preference'],
             'is_rated' => $validated['is_rated'] ?? true,
+            'is_private' => $validated['is_private'] ?? false,
             'challenge_status' => 'pending',
             'expires_at' => now()->addMinutes(10),
             'status' => 1,
@@ -81,7 +84,7 @@ class GameChallengeController extends Controller
 
         return response()->json([
             'message' => 'Reto creado exitosamente.',
-            'challenge' => $challenge->load(['gameMode', 'challenger']),
+            'challenge' => $challenge->load(['gameMode', 'challenger.ratings']),
         ], 201);
     }
 

@@ -19,19 +19,27 @@ export class GameService {
   }
 
   /**
-   * Listar retos públicos abiertos.
+   * Listar retos públicos abiertos en espera de rival.
    */
   getOpenChallenges(): Observable<{ challenges: GameChallenge[] }> {
     return this.http.get<{ challenges: GameChallenge[] }>(`${this.apiUrl}/challenges`);
   }
 
   /**
-   * Crear un nuevo reto o sala privada.
+   * Listar partidas activas en curso para espectadores (Chess TV).
+   */
+  getActiveGames(): Observable<{ games: Game[] }> {
+    return this.http.get<{ games: Game[] }>(`${this.apiUrl}/games/active`);
+  }
+
+  /**
+   * Crear un nuevo reto o sala (pública o privada con enlace).
    */
   createChallenge(data: {
     game_mode_id: number;
     color_preference: 'white' | 'black' | 'random';
     is_rated: boolean;
+    is_private?: boolean;
     challenged_id?: number | null;
   }): Observable<{ message: string; challenge: GameChallenge }> {
     return this.http.post<{ message: string; challenge: GameChallenge }>(`${this.apiUrl}/challenges`, data);
@@ -110,3 +118,4 @@ export class GameService {
     return this.http.post<{ message: string; chat: GameChatMessage }>(`${this.apiUrl}/games/${code}/chat`, { message });
   }
 }
+

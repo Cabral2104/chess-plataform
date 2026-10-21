@@ -30,7 +30,8 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'avatar_url' => 'https://api.dicebear.com/7.x/bottts/svg?seed=' . urlencode($validated['username']),
-            'presence_status' => 'offline',
+            'presence_status' => 'online',
+            'last_seen_at' => now(),
             'status' => 1,
         ]);
 
@@ -90,8 +91,11 @@ class AuthController extends Controller
             ], 403);
         }
 
-        // Actualizar última actividad
-        $user->update(['last_seen_at' => now()]);
+        // Actualizar última actividad y presencia activa
+        $user->update([
+            'last_seen_at' => now(),
+            'presence_status' => 'online',
+        ]);
 
         // Generar token Sanctum
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -108,7 +112,14 @@ class AuthController extends Controller
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        if ($user) {
+            $user->update([
+                'presence_status' => 'offline',
+                'last_seen_at' => now(),
+            ]);
+            $user->currentAccessToken()->delete();
+        }
 
         return response()->json([
             'message' => 'Sesión cerrada correctamente.',
@@ -120,8 +131,36 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if ($user && $user->presence_status !== 'in_game') {
+            $user->update([
+                'presence_status' => 'online',
+                'last_seen_at' => now(),
+            ]);
+        }
+
         return response()->json([
-            'user' => $request->user()->load('ratings'),
+            'user' => $user->load('ratings'),
+        ]);
+    }
+
+    /**
+     * Pulso de presencia (heartbeat) para mantener al jugador en línea.
+     */
+    public function heartbeat(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if ($user) {
+            $status = ($user->presence_status === 'in_game') ? 'in_game' : 'online';
+            $user->update([
+                'presence_status' => $status,
+                'last_seen_at' => now(),
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'ok',
+            'presence_status' => $user->presence_status ?? 'online',
         ]);
     }
 }

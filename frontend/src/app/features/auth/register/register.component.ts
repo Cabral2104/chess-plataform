@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 
 /**
  * Validador para confirmar que ambas contraseñas coincidan.
@@ -16,28 +17,27 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, IconComponent],
   template: `
     <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
-      <div class="w-full max-w-lg bg-[#21201d] border border-[#363431] rounded-xl shadow-2xl p-6 sm:p-8 fade-in">
+      <div class="w-full max-w-lg bg-[#1c1b18] border border-[#2d2a26] rounded-2xl shadow-2xl p-6 sm:p-8 fade-in relative overflow-hidden">
         
-        <!-- Encabezado -->
+        <!-- Detalle decorativo superior sutil -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#c5a059] to-transparent opacity-40"></div>
+
+        <!-- Encabezado de Torneo -->
         <div class="text-center mb-6">
-          <div class="w-12 h-12 mx-auto mb-3 rounded-lg bg-[#2a2825] border border-[#3e3b37] flex items-center justify-center text-chess-gold shadow-inner">
-            <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2l2.4 4.8 5.3.8-3.8 3.7.9 5.3-4.8-2.5-4.8 2.5.9-5.3-3.8-3.7 5.3-.8z"/>
-            </svg>
+          <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-b from-[#292723] to-[#1e1d1a] border border-[#3d3a33] flex items-center justify-center text-[#c5a059] shadow-inner">
+            <app-icon name="user" class="w-6 h-6 text-[#c5a059]"></app-icon>
           </div>
-          <h1 class="text-2xl font-bold text-slate-100 tracking-tight">Crea tu Cuenta de Jugador</h1>
-          <p class="text-sm text-slate-400 mt-1">Empieza con 1200 puntos Elo y compite en tiempo real</p>
+          <h1 class="text-2xl font-bold text-slate-100 tracking-tight">Registro de Jugador Oficial</h1>
+          <p class="text-xs text-slate-400 mt-1">Comienza tu trayectoria competitiva con 1200 puntos Elo FIDE</p>
         </div>
 
         <!-- Alerta de Error -->
         @if (errorMessage()) {
-          <div class="mb-5 p-3 rounded-lg bg-red-950/60 border border-red-800/80 text-red-200 text-sm flex items-center gap-2.5">
-            <svg class="w-5 h-5 flex-shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <div class="mb-5 p-3 rounded-xl bg-red-950/40 border border-red-800/60 text-red-200 text-xs flex items-center gap-2.5">
+            <app-icon name="shield" class="w-4 h-4 text-red-400 flex-shrink-0"></app-icon>
             <span>{{ errorMessage() }}</span>
           </div>
         }
@@ -48,73 +48,73 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Nombre Completo -->
             <div>
-              <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1.5">
+              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
                 Nombre Completo
               </label>
               <input type="text" 
                      formControlName="name"
                      placeholder="ej. Carlos Mendoza"
-                     class="w-full bg-[#181715] border border-[#383531] rounded-lg px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-chess-gold/80 transition-colors">
+                     class="w-full bg-[#141311] border border-[#302e2a] rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#c5a059] transition-all">
               @if (registerForm.get('name')?.touched && registerForm.get('name')?.invalid) {
-                <span class="text-xs text-red-400 mt-1 block">Tu nombre es requerido</span>
+                <span class="text-[11px] text-red-400 mt-1 block">Tu nombre es requerido</span>
               }
             </div>
 
             <!-- Nombre de Usuario -->
             <div>
-              <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1.5">
+              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
                 Nombre de Usuario
               </label>
               <input type="text" 
                      formControlName="username"
                      placeholder="ej. gran_maestro"
-                     class="w-full bg-[#181715] border border-[#383531] rounded-lg px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-chess-gold/80 transition-colors">
+                     class="w-full bg-[#141311] border border-[#302e2a] rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#c5a059] transition-all">
               @if (registerForm.get('username')?.touched && registerForm.get('username')?.invalid) {
-                <span class="text-xs text-red-400 mt-1 block">Mínimo 3 caracteres alfanuméricos</span>
+                <span class="text-[11px] text-red-400 mt-1 block">Mínimo 3 caracteres alfanuméricos</span>
               }
             </div>
           </div>
 
           <!-- Correo Electrónico -->
           <div>
-            <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1.5">
+            <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
               Correo Electrónico
             </label>
             <input type="email" 
                    formControlName="email"
                    placeholder="tu@correo.com"
-                   class="w-full bg-[#181715] border border-[#383531] rounded-lg px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-chess-gold/80 transition-colors">
+                   class="w-full bg-[#141311] border border-[#302e2a] rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#c5a059] transition-all">
             @if (registerForm.get('email')?.touched && registerForm.get('email')?.invalid) {
-              <span class="text-xs text-red-400 mt-1 block">Ingresa un correo electrónico válido</span>
+              <span class="text-[11px] text-red-400 mt-1 block">Ingresa un correo electrónico válido</span>
             }
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <!-- Contraseña -->
             <div>
-              <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1.5">
+              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
                 Contraseña
               </label>
               <input type="password" 
                      formControlName="password"
                      placeholder="Mínimo 8 caracteres"
-                     class="w-full bg-[#181715] border border-[#383531] rounded-lg px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-chess-gold/80 transition-colors">
+                     class="w-full bg-[#141311] border border-[#302e2a] rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#c5a059] transition-all">
               @if (registerForm.get('password')?.touched && registerForm.get('password')?.invalid) {
-                <span class="text-xs text-red-400 mt-1 block">Mínimo 8 caracteres</span>
+                <span class="text-[11px] text-red-400 mt-1 block">Mínimo 8 caracteres</span>
               }
             </div>
 
             <!-- Confirmar Contraseña -->
             <div>
-              <label class="block text-xs font-medium text-slate-300 uppercase tracking-wider mb-1.5">
+              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
                 Confirmar Contraseña
               </label>
               <input type="password" 
                      formControlName="password_confirmation"
                      placeholder="Repite tu contraseña"
-                     class="w-full bg-[#181715] border border-[#383531] rounded-lg px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-chess-gold/80 transition-colors">
+                     class="w-full bg-[#141311] border border-[#302e2a] rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#c5a059] transition-all">
               @if (registerForm.hasError('passwordMismatch') && registerForm.get('password_confirmation')?.touched) {
-                <span class="text-xs text-red-400 mt-1 block">Las contraseñas no coinciden</span>
+                <span class="text-[11px] text-red-400 mt-1 block">Las contraseñas no coinciden</span>
               }
             </div>
           </div>
@@ -122,13 +122,13 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
           <!-- Botón de Registro -->
           <button type="submit" 
                   [disabled]="registerForm.invalid || isSubmitting()"
-                  class="w-full mt-4 py-2.5 px-4 rounded-lg bg-chess-primary hover:bg-chess-primaryHover disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 transform active:scale-98">
+                  class="w-full mt-4 py-3 px-4 rounded-xl bg-[#779952] hover:bg-[#86aa5d] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 transform active:scale-98">
             @if (isSubmitting()) {
               <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
               </svg>
-              <span>Creando cuenta de jugador...</span>
+              <span>Creando cuenta oficial...</span>
             } @else {
               <span>Completar Registro</span>
             }
@@ -138,7 +138,7 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
         <!-- Enlace a Login -->
         <p class="text-center text-xs text-slate-400 mt-6">
           ¿Ya tienes cuenta?
-          <a routerLink="/login" class="text-chess-gold hover:underline font-semibold ml-1">
+          <a routerLink="/login" class="text-[#c5a059] hover:underline font-semibold ml-1">
             Inicia sesión aquí
           </a>
         </p>

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -8,6 +8,7 @@ import { GameService } from '../../core/services/game.service';
 import { WebSocketService } from '../../core/services/websocket.service';
 import { SoundService } from '../../core/services/sound.service';
 import { ChessPieceComponent } from '../../shared/components/chess-piece/chess-piece.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 import {
   Game,
   GameMove,
@@ -17,6 +18,7 @@ import {
   GameOverEventPayload,
   DrawOfferedEventPayload,
   ChatMessageSentEventPayload,
+  getUserRating,
 } from '../../core/models';
 
 interface BoardSquare {
@@ -32,27 +34,29 @@ interface BoardSquare {
 @Component({
   selector: 'app-game',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ChessPieceComponent],
+  imports: [CommonModule, FormsModule, RouterLink, ChessPieceComponent, IconComponent],
   template: `
     <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-4 sm:py-6 fade-in">
       
-      <!-- Banner de Oferta de Tablas Entrante -->
+      <!-- Banner de Propuesta de Tablas Entrante -->
       @if (incomingDrawOffer()) {
-        <div class="mb-4 p-3.5 rounded-xl bg-[#2a261c] border border-chess-gold/80 text-amber-200 shadow-xl flex items-center justify-between gap-4 fade-in">
+        <div class="mb-4 p-4 rounded-2xl bg-[#232018] border border-[#c5a059] text-amber-100 shadow-2xl flex items-center justify-between gap-4 fade-in">
           <div class="flex items-center gap-3">
-            <span class="text-xl">🤝</span>
+            <div class="w-10 h-10 rounded-xl bg-[#2e2a20] border border-[#4a4230] flex items-center justify-center text-[#c5a059]">
+              <app-icon name="handshake" class="w-5 h-5"></app-icon>
+            </div>
             <div>
-              <p class="text-sm font-semibold text-slate-100">Tu rival te ha propuesto tablas</p>
-              <p class="text-xs text-amber-300/80">Puedes aceptar para finalizar la partida en empate</p>
+              <p class="text-sm font-bold text-slate-100">Propuesta de Tablas Recibida</p>
+              <p class="text-xs text-amber-200/70">Tu oponente ha ofrecido finalizar la partida en empate de mutuo acuerdo</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
             <button (click)="acceptDrawOffer()" 
-                    class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow">
+                    class="px-4 py-2 rounded-xl bg-[#779952] hover:bg-[#86aa5d] text-white text-xs font-bold transition-all shadow-md">
               Aceptar Tablas
             </button>
             <button (click)="rejectDrawOffer()" 
-                    class="px-3.5 py-1.5 rounded-lg bg-[#38342e] hover:bg-[#454038] text-slate-300 text-xs font-semibold transition-all">
+                    class="px-3.5 py-2 rounded-xl bg-[#2d2a25] hover:bg-[#38342e] text-slate-300 text-xs font-semibold transition-all">
               Rechazar
             </button>
           </div>
@@ -64,76 +68,84 @@ interface BoardSquare {
         <!-- COLUMNA IZQUIERDA: TABLERO DE AJEDREZ & RELOJES (8 columnas en lg) -->
         <div class="lg:col-span-8 flex flex-col items-center">
           
-          <div class="w-full max-w-[620px] flex flex-col gap-2">
+          <div class="w-full max-w-[620px] flex flex-col gap-2.5">
             
             <!-- TARJETA RIVAL (SUPERIOR) -->
-            <div class="chess-card rounded-lg p-2.5 sm:p-3 flex items-center justify-between border border-[#33302c] shadow">
-              <div class="flex items-center gap-2.5">
+            <div class="bg-[#1b1a17] border border-[#2b2925] rounded-xl p-3 flex items-center justify-between shadow-md">
+              <div class="flex items-center gap-3">
                 <div class="relative">
                   <img [src]="opponent()?.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=rival'" 
-                       class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#2a2825] border border-[#44403a]">
+                       class="w-10 h-10 rounded-full bg-[#24221e] border-2 border-[#383530] shadow-sm">
                   @if (isOpponentConnected()) {
-                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#21201d]" title="Conectado"></span>
+                    <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#779952] ring-2 ring-[#1b1a17]" title="Conectado"></span>
                   } @else {
-                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-slate-500 ring-2 ring-[#21201d]" title="Desconectado"></span>
+                    <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-slate-500 ring-2 ring-[#1b1a17]" title="Desconectado"></span>
                   }
                 </div>
                 <div>
-                  <div class="flex items-center gap-1.5">
+                  <div class="flex items-center gap-2">
                     <span class="text-sm font-bold text-slate-100">
                       {{ opponent()?.username || 'Esperando rival...' }}
                     </span>
-                    <span class="text-[10px] text-chess-gold font-mono font-semibold">
+                    <span class="text-[10px] text-[#c5a059] font-mono font-bold bg-[#26231d] px-2 py-0.5 rounded border border-[#3d372b]">
                       {{ opponentRating() }}
                     </span>
                   </div>
-                  <!-- Piezas capturadas por el rival -->
-                  <div class="flex items-center gap-1 mt-0.5 text-xs text-slate-400">
-                    <span class="text-[11px] font-mono tracking-tight">{{ opponentColor() === 'w' ? '⚪ Blancas' : '⚫ Negras' }}</span>
+                  <!-- Indicador de color y ventaja material -->
+                  <div class="flex items-center gap-2 mt-1 text-xs text-slate-400">
+                    <div class="flex items-center gap-1.5 font-mono text-[11px]">
+                      <span class="w-2.5 h-2.5 rounded-full border shadow-sm"
+                            [class.bg-[#f0d9b5]]="opponentColor() === 'w'"
+                            [class.border-white]="opponentColor() === 'w'"
+                            [class.bg-[#24221f]]="opponentColor() === 'b'"
+                            [class.border-[#47433c]]="opponentColor() === 'b'"></span>
+                      <span>{{ opponentColor() === 'w' ? 'Blancas' : 'Negras' }}</span>
+                    </div>
                     @if (opponentAdvantage() > 0) {
-                      <span class="text-[10px] font-mono font-bold text-emerald-400 ml-1">+{{ opponentAdvantage() }}</span>
+                      <span class="text-[10px] font-mono font-bold text-[#86aa5d] bg-[#22271d] px-1.5 py-0.2 rounded border border-[#37452d]">
+                        +{{ opponentAdvantage() }}
+                      </span>
                     }
                   </div>
                 </div>
               </div>
 
-              <!-- Reloj del Rival -->
-              <div class="px-3.5 py-1.5 rounded-md font-mono text-base sm:text-lg font-bold tracking-wider border transition-all"
-                   [class.bg-[#2f2c27]]="currentTurn() === opponentColor()"
-                   [class.border-chess-gold]="currentTurn() === opponentColor()"
+              <!-- Reloj Digital del Rival (DGT Tournament Style) -->
+              <div class="chess-clock px-4 py-2 rounded-xl text-lg sm:text-xl font-bold tracking-wider transition-all"
+                   [class.chess-clock-active]="currentTurn() === opponentColor()"
                    [class.text-slate-100]="currentTurn() === opponentColor()"
-                   [class.bg-[#181715]]="currentTurn() !== opponentColor()"
-                   [class.border-[#302e2b]]="currentTurn() !== opponentColor()"
-                   [class.text-slate-400]="currentTurn() !== opponentColor()"
-                   [class.animate-pulse]="isClockLow(opponentTimeMs()) && currentTurn() === opponentColor()">
+                   [class.text-slate-500]="currentTurn() !== opponentColor()"
+                   [class.text-amber-400]="isClockLow(opponentTimeMs()) && currentTurn() === opponentColor()">
                 {{ formatClock(opponentTimeMs()) }}
               </div>
             </div>
 
-            <!-- TABLERO PRINCIPAL (64 CASILLAS VECTORIALES CON COORDENADAS) -->
-            <div class="relative w-full aspect-square rounded-lg shadow-2xl border-4 border-[#2b2824] bg-[#22201d] overflow-hidden select-none">
+            <!-- TABLERO PRINCIPAL (MARCO DE TORNEO CON 64 CASILLAS) -->
+            <div class="chess-board-frame relative w-full aspect-square rounded-2xl overflow-hidden select-none p-1.5 sm:p-2">
               
-              <div class="grid grid-cols-8 grid-rows-8 w-full h-full">
+              <div class="grid grid-cols-8 grid-rows-8 w-full h-full rounded-xl overflow-hidden border border-[#2b2824]">
                 @for (sq of boardSquares(); track sq.square) {
                   <div class="relative flex items-center justify-center cursor-pointer transition-colors"
                        [class.bg-[#edeed1]]="sq.isLight"
                        [class.bg-[#779952]]="!sq.isLight"
-                       [class.ring-inset]="selectedSquare() === sq.square"
-                       [class.ring-4]="selectedSquare() === sq.square"
-                       [class.ring-[#baca44]]="selectedSquare() === sq.square"
                        (click)="onSquareClick(sq)">
                     
-                    <!-- Resaltado de Último Movimiento -->
+                    <!-- Resaltado de Última Jugada -->
                     @if (lastMove() && (lastMove()?.from === sq.square || lastMove()?.to === sq.square)) {
-                      <div class="absolute inset-0 bg-[#cdd26a]/50 pointer-events-none"></div>
+                      <div class="absolute inset-0 bg-[#cdd26a]/55 pointer-events-none"></div>
+                    }
+
+                    <!-- Resaltado de Casilla Seleccionada -->
+                    @if (selectedSquare() === sq.square) {
+                      <div class="absolute inset-0 ring-inset ring-4 ring-[#baca44] pointer-events-none"></div>
                     }
 
                     <!-- Resaltado de Rey en Jaque -->
                     @if (isKingInCheck(sq)) {
-                      <div class="absolute inset-0 bg-red-600/60 animate-pulse pointer-events-none rounded-full"></div>
+                      <div class="absolute inset-0 bg-red-600/60 rounded-full animate-pulse pointer-events-none"></div>
                     }
 
-                    <!-- Coordenadas sutiles en los bordes (FIDE standard) -->
+                    <!-- Coordenadas FIDE sutiles en los bordes -->
                     @if (isRankLabelVisible(sq)) {
                       <span class="absolute top-0.5 left-1 text-[9px] sm:text-[10px] font-bold font-mono pointer-events-none select-none"
                             [class.text-[#779952]]="sq.isLight"
@@ -149,18 +161,18 @@ interface BoardSquare {
                       </span>
                     }
 
-                    <!-- Puntos de sugerencia de movimientos legales -->
+                    <!-- Sugerencias de Movimientos Legales -->
                     @if (isLegalTarget(sq.square)) {
                       @if (sq.isPiece) {
                         <!-- Anillo de Captura -->
-                        <div class="absolute inset-1 rounded-full border-4 border-[#333333]/30 pointer-events-none"></div>
+                        <div class="absolute inset-1 rounded-full border-4 border-[#22201d]/35 pointer-events-none"></div>
                       } @else {
-                        <!-- Punto de Movimiento silencioso -->
-                        <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#202020]/25 pointer-events-none"></div>
+                        <!-- Punto de Movimiento Silencioso -->
+                        <div class="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#1a1816]/30 pointer-events-none"></div>
                       }
                     }
 
-                    <!-- Pieza de Ajedrez -->
+                    <!-- Pieza de Ajedrez Staunton Vectorial -->
                     @if (sq.pieceKey) {
                       <app-chess-piece [pieceKey]="sq.pieceKey" class="w-full h-full p-0.5 z-10"></app-chess-piece>
                     }
@@ -171,16 +183,16 @@ interface BoardSquare {
 
               <!-- MODAL DE CORONACIÓN DE PEÓN -->
               @if (promotionPending()) {
-                <div class="absolute inset-0 z-30 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 fade-in">
-                  <div class="bg-[#24221f] border border-chess-gold rounded-xl p-4 shadow-2xl text-center">
+                <div class="absolute inset-0 z-30 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 fade-in">
+                  <div class="bg-[#201f1b] border border-[#c5a059] rounded-2xl p-5 shadow-2xl text-center">
                     <p class="text-xs font-bold text-slate-200 mb-3 uppercase tracking-wider">
-                      Elige pieza de coronación
+                      Selecciona Pieza de Coronación
                     </p>
-                    <div class="grid grid-cols-4 gap-2">
+                    <div class="grid grid-cols-4 gap-2.5">
                       @for (p of ['q', 'n', 'r', 'b']; track p) {
                         <button type="button" 
                                 (click)="completePromotion(p)"
-                                class="w-14 h-14 bg-[#1b1a18] hover:bg-[#33302b] border border-[#3e3b37] rounded-lg p-1 transition-all transform active:scale-90 flex items-center justify-center shadow">
+                                class="w-14 h-14 bg-[#161512] hover:bg-[#2c2a25] border border-[#3a3731] hover:border-[#c5a059] rounded-xl p-1 transition-all transform active:scale-90 flex items-center justify-center shadow">
                           <app-chess-piece [pieceKey]="myColor() + p.toUpperCase()" class="w-full h-full"></app-chess-piece>
                         </button>
                       }
@@ -192,41 +204,49 @@ interface BoardSquare {
             </div>
 
             <!-- TARJETA JUGADOR LOCAL (INFERIOR) -->
-            <div class="chess-card rounded-lg p-2.5 sm:p-3 flex items-center justify-between border border-[#33302c] shadow">
-              <div class="flex items-center gap-2.5">
+            <div class="bg-[#1b1a17] border border-[#2b2925] rounded-xl p-3 flex items-center justify-between shadow-md">
+              <div class="flex items-center gap-3">
                 <div class="relative">
                   <img [src]="authService.currentUser()?.avatar_url" 
-                       class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#2a2825] border border-chess-gold/60 shadow">
-                  <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#21201d]"></span>
+                       class="w-10 h-10 rounded-full bg-[#24221e] border-2 border-[#c5a059] shadow-sm">
+                  <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#779952] ring-2 ring-[#1b1a17]"></span>
                 </div>
                 <div>
-                  <div class="flex items-center gap-1.5">
+                  <div class="flex items-center gap-2">
                     <span class="text-sm font-bold text-slate-100">
                       {{ authService.currentUser()?.username }}
                     </span>
-                    <span class="text-[10px] text-chess-gold font-mono font-semibold">
+                    <span class="text-[10px] text-[#c5a059] font-mono font-bold bg-[#26231d] px-2 py-0.5 rounded border border-[#3d372b]">
                       {{ myRating() }}
                     </span>
-                    <span class="text-[9px] bg-chess-gold/15 text-chess-gold px-1 rounded uppercase font-semibold">Tú</span>
+                    <span class="text-[9px] bg-[#c5a059]/15 text-[#c5a059] px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">
+                      Tú
+                    </span>
                   </div>
-                  <div class="flex items-center gap-1 mt-0.5 text-xs text-slate-400">
-                    <span class="text-[11px] font-mono tracking-tight">{{ myColor() === 'w' ? '⚪ Blancas' : '⚫ Negras' }}</span>
+                  <div class="flex items-center gap-2 mt-1 text-xs text-slate-400">
+                    <div class="flex items-center gap-1.5 font-mono text-[11px]">
+                      <span class="w-2.5 h-2.5 rounded-full border shadow-sm"
+                            [class.bg-[#f0d9b5]]="myColor() === 'w'"
+                            [class.border-white]="myColor() === 'w'"
+                            [class.bg-[#24221f]]="myColor() === 'b'"
+                            [class.border-[#47433c]]="myColor() === 'b'"></span>
+                      <span>{{ myColor() === 'w' ? 'Blancas' : 'Negras' }}</span>
+                    </div>
                     @if (myAdvantage() > 0) {
-                      <span class="text-[10px] font-mono font-bold text-emerald-400 ml-1">+{{ myAdvantage() }}</span>
+                      <span class="text-[10px] font-mono font-bold text-[#86aa5d] bg-[#22271d] px-1.5 py-0.2 rounded border border-[#37452d]">
+                        +{{ myAdvantage() }}
+                      </span>
                     }
                   </div>
                 </div>
               </div>
 
-              <!-- Reloj del Jugador Local -->
-              <div class="px-3.5 py-1.5 rounded-md font-mono text-base sm:text-lg font-bold tracking-wider border transition-all"
-                   [class.bg-[#2f2c27]]="currentTurn() === myColor()"
-                   [class.border-chess-gold]="currentTurn() === myColor()"
+              <!-- Reloj Digital del Jugador Local -->
+              <div class="chess-clock px-4 py-2 rounded-xl text-lg sm:text-xl font-bold tracking-wider transition-all"
+                   [class.chess-clock-active]="currentTurn() === myColor()"
                    [class.text-slate-100]="currentTurn() === myColor()"
-                   [class.bg-[#181715]]="currentTurn() !== myColor()"
-                   [class.border-[#302e2b]]="currentTurn() !== myColor()"
-                   [class.text-slate-400]="currentTurn() !== myColor()"
-                   [class.animate-pulse]="isClockLow(myTimeMs()) && currentTurn() === myColor()">
+                   [class.text-slate-500]="currentTurn() !== myColor()"
+                   [class.text-amber-400]="isClockLow(myTimeMs()) && currentTurn() === myColor()">
                 {{ formatClock(myTimeMs()) }}
               </div>
             </div>
@@ -239,70 +259,79 @@ interface BoardSquare {
         <div class="lg:col-span-4 space-y-4">
           
           <!-- PANEL PRINCIPAL DE PARTIDA -->
-          <div class="chess-panel rounded-xl border border-[#363431] p-4 shadow-xl">
+          <div class="bg-[#1b1a17] rounded-2xl border border-[#2b2925] p-5 shadow-2xl">
             
-            <!-- Encabezado con Modo de Juego & Estado -->
-            <div class="flex items-center justify-between pb-3 border-b border-[#302e2b]">
+            <!-- Encabezado con Modo de Juego & Utilidades -->
+            <div class="flex items-center justify-between pb-3.5 border-b border-[#292724]">
               <div>
-                <span class="text-xs font-mono text-chess-gold uppercase tracking-wider block">
-                  {{ game()?.game_mode?.name || 'Ajedrez Online' }}
+                <span class="text-[10px] font-mono text-[#c5a059] uppercase tracking-wider font-semibold block">
+                  {{ game()?.game_mode?.name || 'Ajedrez Oficial' }}
                 </span>
-                <span class="text-sm font-bold text-slate-100">
+                <span class="text-xs font-bold text-slate-100 flex items-center gap-1.5 mt-0.5">
                   @if (game()?.game_status === 'in_progress') {
-                    <span class="text-emerald-400">&bull; Partida en curso</span>
+                    <span class="w-2 h-2 rounded-full bg-[#779952]"></span>
+                    <span>Partida en curso</span>
                   } @else if (game()?.game_status === 'completed') {
-                    <span class="text-chess-gold">&bull; Partida Concluida</span>
+                    <span class="w-2 h-2 rounded-full bg-[#c5a059]"></span>
+                    <span>Partida Finalizada</span>
                   } @else {
-                    <span class="text-slate-400">&bull; Esperando inicio</span>
+                    <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+                    <span>Esperando inicio</span>
                   }
                 </span>
               </div>
 
-              <!-- Botones de Utilidad -->
+              <!-- Botones de Utilidad Vectoriales -->
               <div class="flex items-center gap-1.5">
+                <button type="button" 
+                        (click)="loadGameDetails(gameCode())" 
+                        title="Sincronizar Tablero"
+                        class="p-2 rounded-xl bg-[#22201d] hover:bg-[#2b2824] border border-[#33302b] text-slate-300 transition-colors">
+                  <app-icon name="refresh" class="w-4 h-4"></app-icon>
+                </button>
                 <button type="button" 
                         (click)="toggleOrientation()" 
                         title="Invertir Tablero"
-                        class="p-1.5 rounded bg-[#262421] hover:bg-[#33302c] border border-[#3e3b37] text-slate-300 transition-colors">
-                  🔄
+                        class="p-2 rounded-xl bg-[#22201d] hover:bg-[#2b2824] border border-[#33302b] text-slate-300 transition-colors">
+                  <app-icon name="rotate" class="w-4 h-4"></app-icon>
                 </button>
                 <button type="button" 
                         (click)="toggleSound()" 
                         title="Activar / Silenciar Sonido"
-                        class="p-1.5 rounded bg-[#262421] hover:bg-[#33302c] border border-[#3e3b37] text-slate-300 transition-colors">
-                  {{ soundService.isSoundEnabled() ? '🔊' : '🔇' }}
+                        class="p-2 rounded-xl bg-[#22201d] hover:bg-[#2b2824] border border-[#33302b] text-slate-300 transition-colors">
+                  <app-icon [name]="soundService.isSoundEnabled() ? 'volume' : 'volume-x'" class="w-4 h-4"></app-icon>
                 </button>
               </div>
             </div>
 
             <!-- REGISTRO DE MOVIMIENTOS (SAN NOTATION) -->
-            <div class="mt-3">
-              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center justify-between">
+            <div class="mt-4">
+              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center justify-between">
                 <span>Jugadas Realizadas ({{ movesList().length }})</span>
                 <span class="font-mono text-slate-500">SAN FIDE</span>
               </div>
 
-              <div class="h-44 overflow-y-auto bg-[#181715] rounded-lg p-2 border border-[#302e2b] text-xs font-mono space-y-1">
+              <div class="h-44 overflow-y-auto bg-[#131210] rounded-xl p-2.5 border border-[#272522] text-xs font-mono space-y-1">
                 @if (movePairs().length === 0) {
-                  <div class="text-slate-500 text-center py-8 italic">
-                    Aún no se han efectuado movimientos
+                  <div class="text-slate-500 text-center py-10 italic text-[11px]">
+                    Esperando primera jugada...
                   </div>
                 } @else {
-                  <div class="grid grid-cols-12 gap-1 py-0.5 text-slate-400 font-semibold border-b border-[#2a2825] pb-1 mb-1">
+                  <div class="grid grid-cols-12 gap-1 py-1 text-slate-400 font-semibold border-b border-[#24221f] text-[11px]">
                     <span class="col-span-2">#</span>
                     <span class="col-span-5">Blancas</span>
                     <span class="col-span-5">Negras</span>
                   </div>
                   @for (pair of movePairs(); track pair.num) {
-                    <div class="grid grid-cols-12 gap-1 py-0.5 text-slate-300 hover:bg-[#22201d] rounded px-1">
+                    <div class="grid grid-cols-12 gap-1 py-1 text-slate-300 hover:bg-[#201e1b] rounded-md px-1 transition-colors">
                       <span class="col-span-2 text-slate-500">{{ pair.num }}.</span>
-                      <span class="col-span-5 cursor-pointer hover:text-chess-gold transition-colors"
-                            [class.text-chess-gold]="scrubbedMoveIndex() === pair.whiteIndex"
+                      <span class="col-span-5 cursor-pointer hover:text-[#c5a059] transition-colors"
+                            [class.text-[#c5a059]]="scrubbedMoveIndex() === pair.whiteIndex"
                             (click)="scrubToMove(pair.whiteIndex)">
                         {{ pair.whiteSan }}
                       </span>
-                      <span class="col-span-5 cursor-pointer hover:text-chess-gold transition-colors"
-                            [class.text-chess-gold]="scrubbedMoveIndex() === pair.blackIndex"
+                      <span class="col-span-5 cursor-pointer hover:text-[#c5a059] transition-colors"
+                            [class.text-[#c5a059]]="scrubbedMoveIndex() === pair.blackIndex"
                             (click)="scrubToMove(pair.blackIndex)">
                         {{ pair.blackSan || '' }}
                       </span>
@@ -311,55 +340,59 @@ interface BoardSquare {
                 }
               </div>
 
-              <!-- Botones de Navegación del Historial (Scrubber) -->
-              <div class="flex items-center justify-center gap-1.5 mt-2">
-                <button type="button" (click)="scrubStart()" class="px-2 py-1 bg-[#24221f] hover:bg-[#2e2c28] border border-[#383531] rounded text-xs text-slate-300">
-                  |&lt;&lt;
+              <!-- Controles de Reproducción del Historial (Scrubber) -->
+              <div class="flex items-center justify-center gap-1.5 mt-2.5">
+                <button type="button" (click)="scrubStart()" title="Inicio" class="p-1.5 bg-[#201f1b] hover:bg-[#2a2824] border border-[#302e2a] rounded-lg text-slate-300 transition-colors">
+                  <app-icon name="chevrons-left" class="w-3.5 h-3.5"></app-icon>
                 </button>
-                <button type="button" (click)="scrubPrev()" class="px-3 py-1 bg-[#24221f] hover:bg-[#2e2c28] border border-[#383531] rounded text-xs text-slate-300">
-                  &lt;
+                <button type="button" (click)="scrubPrev()" title="Anterior" class="p-1.5 bg-[#201f1b] hover:bg-[#2a2824] border border-[#302e2a] rounded-lg text-slate-300 transition-colors">
+                  <app-icon name="arrow-left" class="w-3.5 h-3.5"></app-icon>
                 </button>
-                <button type="button" (click)="scrubNext()" class="px-3 py-1 bg-[#24221f] hover:bg-[#2e2c28] border border-[#383531] rounded text-xs text-slate-300">
-                  &gt;
+                <button type="button" (click)="scrubNext()" title="Siguiente" class="p-1.5 bg-[#201f1b] hover:bg-[#2a2824] border border-[#302e2a] rounded-lg text-slate-300 transition-colors">
+                  <app-icon name="arrow-right" class="w-3.5 h-3.5"></app-icon>
                 </button>
-                <button type="button" (click)="scrubLive()" class="px-2 py-1 bg-[#24221f] hover:bg-[#2e2c28] border border-[#383531] rounded text-xs text-slate-300"
-                        [class.border-chess-gold]="scrubbedMoveIndex() === -1">
-                  &gt;&gt;| En vivo
+                <button type="button" (click)="scrubLive()" title="Posición en vivo" class="px-2.5 py-1.5 bg-[#201f1b] hover:bg-[#2a2824] border border-[#302e2a] rounded-lg text-xs font-semibold text-slate-300 transition-colors flex items-center gap-1"
+                        [class.border-[#c5a059]]="scrubbedMoveIndex() === -1">
+                  <app-icon name="chevrons-right" class="w-3.5 h-3.5"></app-icon>
+                  <span>En vivo</span>
                 </button>
               </div>
             </div>
 
             <!-- BOTONES DE ACCIÓN (TABLAS / ABANDONAR) -->
             @if (game()?.game_status === 'in_progress') {
-              <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-[#302e2b]">
+              <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-[#292724]">
                 <button type="button" 
                         (click)="offerDraw()"
                         [disabled]="isOfferingDraw()"
-                        class="py-2 px-3 rounded-lg bg-[#272522] hover:bg-[#302e2a] border border-[#3d3a35] text-slate-300 hover:text-white text-xs font-semibold transition-all">
-                  🤝 Ofrecer Tablas
+                        class="py-2.5 px-3 rounded-xl bg-[#22201d] hover:bg-[#2a2824] border border-[#33302b] text-slate-200 text-xs font-semibold transition-all flex items-center justify-center gap-1.5">
+                  <app-icon name="handshake" class="w-4 h-4 text-slate-400"></app-icon>
+                  <span>Ofrecer Tablas</span>
                 </button>
                 <button type="button" 
                         (click)="confirmResignPrompt()"
-                        class="py-2 px-3 rounded-lg bg-[#2f2222] hover:bg-[#3a2828] border border-red-900/60 text-red-300 hover:text-red-200 text-xs font-semibold transition-all">
-                  🏳️ Rendirse
+                        class="py-2.5 px-3 rounded-xl bg-[#281c1c] hover:bg-[#352222] border border-red-900/60 text-red-300 hover:text-red-200 text-xs font-semibold transition-all flex items-center justify-center gap-1.5">
+                  <app-icon name="flag" class="w-4 h-4 text-red-400"></app-icon>
+                  <span>Rendirse</span>
                 </button>
               </div>
             } @else {
-              <div class="mt-4 pt-3 border-t border-[#302e2b]">
+              <div class="mt-4 pt-3 border-t border-[#292724]">
                 <a routerLink="/lobby" 
-                   class="w-full py-2.5 px-4 rounded-lg bg-chess-primary hover:bg-chess-primaryHover text-white text-xs font-bold transition-all shadow flex items-center justify-center gap-2">
-                  <span>← Volver al Lobby de Salas</span>
+                   class="w-full py-2.5 px-4 rounded-xl bg-[#779952] hover:bg-[#86aa5d] text-white text-xs font-bold transition-all shadow flex items-center justify-center gap-2">
+                  <span>← Regresar al Lobby</span>
                 </a>
               </div>
             }
 
           </div>
 
-          <!-- CHAT EN TIEMPO REAL DENTRO DE LA PARTIDA -->
-          <div class="chess-panel rounded-xl border border-[#363431] p-4 shadow-xl flex flex-col h-64">
-            <div class="flex items-center justify-between pb-2 border-b border-[#302e2b] mb-2">
+          <!-- CHAT EN TIEMPO REAL -->
+          <div class="bg-[#1b1a17] rounded-2xl border border-[#2b2925] p-4 shadow-xl flex flex-col h-64">
+            <div class="flex items-center justify-between pb-2 border-b border-[#272522] mb-2">
               <span class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                <span>💬 Chat de la Sala</span>
+                <app-icon name="chat" class="w-4 h-4 text-[#c5a059]"></app-icon>
+                <span>Chat de la Sala</span>
               </span>
               <span class="text-[10px] text-slate-500 font-mono">
                 {{ chatMessages().length }} mensajes
@@ -369,14 +402,14 @@ interface BoardSquare {
             <!-- Lista de Mensajes -->
             <div class="flex-1 overflow-y-auto space-y-2 pr-1 text-xs">
               @if (chatMessages().length === 0) {
-                <div class="text-slate-500 text-center py-10 italic text-[11px]">
-                  Envía un saludo a tu oponente
+                <div class="text-slate-500 text-center py-12 italic text-[11px]">
+                  Envía un mensaje respetuoso a tu oponente
                 </div>
               } @else {
                 @for (msg of chatMessages(); track msg.id) {
-                  <div class="p-2 rounded-lg bg-[#1c1b18] border border-[#2e2c28]">
+                  <div class="p-2 rounded-xl bg-[#141311] border border-[#262420]">
                     <div class="flex items-center justify-between mb-0.5">
-                      <span class="font-bold text-chess-gold text-[11px]">
+                      <span class="font-bold text-[#c5a059] text-[11px]">
                         {{ msg.user?.username || 'Jugador' }}
                       </span>
                       <span class="text-[9px] text-slate-500 font-mono">
@@ -397,10 +430,10 @@ interface BoardSquare {
                      [(ngModel)]="chatInput" 
                      name="chatInput"
                      placeholder="Escribe un mensaje..."
-                     class="flex-1 bg-[#181715] border border-[#383531] rounded-lg px-2.5 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-chess-gold/80 transition-colors">
+                     class="flex-1 bg-[#141311] border border-[#2d2a26] rounded-xl px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#c5a059] transition-colors">
               <button type="submit" 
                       [disabled]="!chatInput.trim()"
-                      class="px-3 py-1.5 rounded-lg bg-chess-primary hover:bg-chess-primaryHover disabled:opacity-40 text-white text-xs font-bold transition-all shadow">
+                      class="px-3.5 py-1.5 rounded-xl bg-[#779952] hover:bg-[#86aa5d] disabled:opacity-40 text-white text-xs font-bold transition-all shadow">
                 Enviar
               </button>
             </form>
@@ -413,21 +446,23 @@ interface BoardSquare {
       <!-- MODAL DE CONFIRMACIÓN DE ABANDONO -->
       @if (showResignModal()) {
         <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 fade-in">
-          <div class="w-full max-w-sm bg-[#21201d] border border-red-900/80 rounded-xl shadow-2xl p-6 text-center">
-            <span class="text-4xl block mb-2">🏳️</span>
+          <div class="w-full max-w-sm bg-[#1c1b18] border border-red-900/80 rounded-2xl shadow-2xl p-6 text-center">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-red-950/60 border border-red-800 flex items-center justify-center text-red-400">
+              <app-icon name="flag" class="w-6 h-6"></app-icon>
+            </div>
             <h3 class="text-lg font-bold text-slate-100">¿Deseas rendirte?</h3>
             <p class="text-xs text-slate-400 mt-1 mb-5">
-              La victoria será otorgada inmediatamente a tu rival y se ajustará la puntuación Elo correspondiente.
+              La victoria será otorgada a tu oponente y se actualizarán las puntuaciones Elo reglamentarias.
             </p>
             <div class="grid grid-cols-2 gap-3">
               <button type="button" 
                       (click)="showResignModal.set(false)"
-                      class="py-2 rounded-lg bg-[#2e2b27] hover:bg-[#38342f] text-slate-200 text-xs font-semibold">
+                      class="py-2.5 rounded-xl bg-[#262420] hover:bg-[#302e29] text-slate-200 text-xs font-semibold transition-colors">
                 Cancelar
               </button>
               <button type="button" 
                       (click)="executeResign()"
-                      class="py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-xs font-bold shadow">
+                      class="py-2.5 rounded-xl bg-red-700 hover:bg-red-600 text-white text-xs font-bold shadow transition-colors">
                 Sí, Rendirse
               </button>
             </div>
@@ -438,21 +473,21 @@ interface BoardSquare {
       <!-- MODAL DE FINAL DE PARTIDA -->
       @if (showGameOverModal()) {
         <div class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 fade-in">
-          <div class="w-full max-w-md bg-[#21201d] border border-chess-gold/80 rounded-2xl shadow-2xl p-6 sm:p-7 text-center">
+          <div class="w-full max-w-md bg-[#1c1b18] border border-[#c5a059]/80 rounded-2xl shadow-2xl p-6 sm:p-7 text-center">
             
-            <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-[#2a2824] border-2 border-chess-gold flex items-center justify-center text-3xl shadow-inner">
+            <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-[#262420] border-2 border-[#c5a059] flex items-center justify-center text-[#c5a059] shadow-inner">
               @if (isWinner()) {
-                🏆
+                <app-icon name="trophy" class="w-8 h-8 text-[#c5a059]"></app-icon>
               } @else if (isDraw()) {
-                🤝
+                <app-icon name="handshake" class="w-8 h-8 text-slate-300"></app-icon>
               } @else {
-                ♟️
+                <app-icon name="crosshair" class="w-8 h-8 text-slate-400"></app-icon>
               }
             </div>
 
             <h2 class="text-2xl font-bold text-slate-100 tracking-tight">
               @if (isWinner()) {
-                ¡Victoria Magistral!
+                ¡Victoria Oficial!
               } @else if (isDraw()) {
                 Partida en Tablas
               } @else {
@@ -460,20 +495,20 @@ interface BoardSquare {
               }
             </h2>
 
-            <p class="text-sm text-slate-300 mt-1">
+            <p class="text-xs text-slate-300 mt-1">
               {{ gameOverReasonText() }}
             </p>
 
             <!-- Variación de Elo -->
-            <div class="my-5 p-3 rounded-xl bg-[#181715] border border-[#363431] flex items-center justify-around">
+            <div class="my-5 p-3.5 rounded-xl bg-[#141311] border border-[#2d2a26] flex items-center justify-around">
               <div>
-                <span class="text-[10px] text-slate-400 uppercase tracking-widest block">Tu Elo</span>
+                <span class="text-[10px] text-slate-400 uppercase tracking-widest block">Tu Elo Actual</span>
                 <span class="text-base font-bold font-mono text-slate-200">
                   {{ myRating() }}
                 </span>
               </div>
               <div class="text-2xl font-bold font-mono"
-                   [class.text-emerald-400]="isWinner()"
+                   [class.text-[#86aa5d]]="isWinner()"
                    [class.text-slate-400]="isDraw()"
                    [class.text-red-400]="!isWinner() && !isDraw()">
                 {{ ratingChangeText() }}
@@ -483,13 +518,13 @@ interface BoardSquare {
             <!-- Botones Finales -->
             <div class="space-y-2">
               <a routerLink="/lobby" 
-                 class="w-full py-3 rounded-xl bg-chess-primary hover:bg-chess-primaryHover text-white font-bold text-sm shadow transition-all block">
-                Regresar a la Sala Principal
+                 class="w-full py-3 rounded-xl bg-[#779952] hover:bg-[#86aa5d] text-white font-bold text-sm shadow transition-all block">
+                Regresar al Lobby
               </a>
               <button type="button" 
                       (click)="showGameOverModal.set(false)"
                       class="w-full py-2 text-xs text-slate-400 hover:text-slate-200 transition-colors">
-                Examinar el tablero final
+                Examinar posición final del tablero
               </button>
             </div>
 
@@ -507,8 +542,8 @@ export class GameComponent implements OnInit, OnDestroy {
   soundService = inject(SoundService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private ngZone = inject(NgZone);
 
-  // Instancia autoritativa de ajedrez chess.js
   private chess = new Chess();
 
   gameCode = signal<string>('');
@@ -516,31 +551,24 @@ export class GameComponent implements OnInit, OnDestroy {
   currentFen = signal<string>(this.chess.fen());
   currentTurn = signal<'w' | 'b'>('w');
 
-  // Relojes en milisegundos
   whiteTimeMs = signal<number>(180000);
   blackTimeMs = signal<number>(180000);
 
-  // Orientación del tablero ('white' abajo o 'black' abajo)
   orientation = signal<'white' | 'black'>('white');
 
-  // Interacción de casillas
   selectedSquare = signal<Square | null>(null);
   legalMoves = signal<string[]>([]);
   lastMove = signal<{ from: string; to: string } | null>(null);
 
-  // Coronación de peón pendiente
   promotionPending = signal<{ from: Square; to: Square } | null>(null);
 
-  // Notación de movimientos
   movesList = signal<GameMove[]>([]);
   scrubbedMoveIndex = signal<number>(-1);
 
-  // Chat y presencia
   chatMessages = signal<GameChatMessage[]>([]);
   chatInput: string = '';
   presenceMembers = signal<PresenceMember[]>([]);
 
-  // Estados de modales
   incomingDrawOffer = signal<boolean>(false);
   isOfferingDraw = signal<boolean>(false);
   showResignModal = signal<boolean>(false);
@@ -549,7 +577,6 @@ export class GameComponent implements OnInit, OnDestroy {
 
   private clockInterval: any;
 
-  // Determinar rol del jugador actual
   isWhitePlayer = computed(() => {
     const user = this.authService.currentUser();
     const g = this.game();
@@ -577,11 +604,15 @@ export class GameComponent implements OnInit, OnDestroy {
   });
 
   myRating = computed(() => {
-    return 1200; // Elo base por defecto
+    const user = this.authService.currentUser();
+    const mode = this.game()?.game_mode?.type || 'blitz';
+    return getUserRating(user, mode);
   });
 
   opponentRating = computed(() => {
-    return 1200;
+    const opp = this.opponent();
+    const mode = this.game()?.game_mode?.type || 'blitz';
+    return getUserRating(opp, mode);
   });
 
   myTimeMs = computed(() => {
@@ -598,11 +629,9 @@ export class GameComponent implements OnInit, OnDestroy {
     return this.presenceMembers().some(m => m.id === opp.id);
   });
 
-  // Ventaja material (+1, +3, etc.)
   myAdvantage = signal<number>(0);
   opponentAdvantage = signal<number>(0);
 
-  // Cuadrícula 8x8 calculada según la orientación activa
   boardSquares = computed<BoardSquare[]>(() => {
     const fen = this.currentFen();
     const tempChess = new Chess(fen);
@@ -648,7 +677,6 @@ export class GameComponent implements OnInit, OnDestroy {
     return squares;
   });
 
-  // Lista de jugadas agrupadas en pares (1. e4 e5)
   movePairs = computed(() => {
     const list = this.movesList();
     const pairs: Array<{ num: number; whiteSan: string; blackSan?: string; whiteIndex: number; blackIndex: number }> = [];
@@ -675,10 +703,16 @@ export class GameComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Reloj local de 100ms para decrementar el tiempo del turno activo fluidamente
-    this.clockInterval = setInterval(() => {
-      this.tickClock();
-    }, 100);
+    this.ngZone.runOutsideAngular(() => {
+      this.clockInterval = setInterval(() => {
+        const g = this.game();
+        if (g && g.game_status === 'in_progress') {
+          this.ngZone.run(() => {
+            this.tickClock();
+          });
+        }
+      }, 100);
+    });
   }
 
   ngOnDestroy(): void {
@@ -714,7 +748,6 @@ export class GameComponent implements OnInit, OnDestroy {
           this.chatMessages.set(res.game.chat_messages);
         }
 
-        // Orientar tablero automáticamente según el bando del usuario
         const userId = this.authService.currentUser()?.id;
         if (userId && res.game.black_player_id === userId) {
           this.orientation.set('black');
@@ -724,7 +757,6 @@ export class GameComponent implements OnInit, OnDestroy {
 
         this.calculateMaterialAdvantage();
 
-        // Si la partida ya estaba completada al ingresar
         if (res.game.game_status === 'completed') {
           this.showGameOverModal.set(true);
         }
@@ -759,7 +791,9 @@ export class GameComponent implements OnInit, OnDestroy {
         }
       },
       onChatMessage: (payload: ChatMessageSentEventPayload) => {
-        this.chatMessages.update(msgs => [...msgs, payload.message]);
+        if (!this.chatMessages().some(m => m.id === payload.message.id)) {
+          this.chatMessages.update(msgs => [...msgs, payload.message]);
+        }
       }
     });
   }
@@ -774,7 +808,6 @@ export class GameComponent implements OnInit, OnDestroy {
     this.lastMove.set({ from: payload.move.from_square, to: payload.move.to_square });
     this.movesList.update(list => [...list, payload.move]);
 
-    // Sonidos acústicos según el resultado de la jugada
     if (this.chess.isCheck()) {
       this.soundService.playCheck();
     } else if (payload.move.captured_piece) {
@@ -793,18 +826,15 @@ export class GameComponent implements OnInit, OnDestroy {
     this.showGameOverModal.set(true);
   }
 
-  // Lógica de casillas e interacción del usuario
   onSquareClick(sq: BoardSquare): void {
     const g = this.game();
     if (!g || g.game_status !== 'in_progress') return;
 
-    // Solo mover si es el turno del jugador y este es participante activo
     if (this.currentTurn() !== this.myColor()) return;
     if (!this.isWhitePlayer() && !this.isBlackPlayer()) return;
 
     const selected = this.selectedSquare();
 
-    // 1. Si no hay casilla seleccionada: seleccionar solo pieza propia
     if (!selected) {
       if (sq.isPiece && sq.pieceColor === this.myColor()) {
         this.selectSquare(sq.square);
@@ -812,21 +842,17 @@ export class GameComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // 2. Si se hace click en la misma casilla: deseleccionar
     if (selected === sq.square) {
       this.clearSelection();
       return;
     }
 
-    // 3. Si se hace click en otra pieza propia: cambiar selección
     if (sq.isPiece && sq.pieceColor === this.myColor()) {
       this.selectSquare(sq.square);
       return;
     }
 
-    // 4. Si se hace click en una casilla destino válida
     if (this.isLegalTarget(sq.square)) {
-      // Verificar si es coronación de peón
       const movingPiece = this.chess.get(selected);
       if (movingPiece && movingPiece.type === 'p') {
         const isPromotionRank = (movingPiece.color === 'w' && sq.rank === 8) || (movingPiece.color === 'b' && sq.rank === 1);
@@ -882,7 +908,6 @@ export class GameComponent implements OnInit, OnDestroy {
       this.lastMove.set({ from, to });
       this.clearSelection();
 
-      // Sonido inmediato optimista
       if (this.chess.isCheck()) {
         this.soundService.playCheck();
       } else if (moveResult.captured) {
@@ -891,7 +916,6 @@ export class GameComponent implements OnInit, OnDestroy {
         this.soundService.playMove();
       }
 
-      // Enviar jugada al servidor con validación autoritativa
       this.gameService.makeMove(this.gameCode(), {
         from,
         to,
@@ -909,17 +933,15 @@ export class GameComponent implements OnInit, OnDestroy {
           this.blackTimeMs.set(res.game.black_time_left_ms);
           this.movesList.update(list => [...list, res.move]);
         },
-        error: (err) => {
-          // Revertir en caso de desincronización
+        error: () => {
           this.loadGameDetails(this.gameCode());
         }
       });
-    } catch (e) {
+    } catch {
       this.clearSelection();
     }
   }
 
-  // Tictac del reloj en milisegundos
   private tickClock(): void {
     const g = this.game();
     if (!g || g.game_status !== 'in_progress') return;
@@ -949,14 +971,12 @@ export class GameComponent implements OnInit, OnDestroy {
     return ms < 30000;
   }
 
-  // Resaltado de rey bajo jaque
   isKingInCheck(sq: BoardSquare): boolean {
     if (!this.chess.isCheck()) return false;
     const turn = this.chess.turn();
     return sq.pieceKey === `${turn}K`;
   }
 
-  // Etiquetas de coordenadas en casillas limítrofes
   isRankLabelVisible(sq: BoardSquare): boolean {
     return this.orientation() === 'white' ? sq.file === 'a' : sq.file === 'h';
   }
@@ -973,7 +993,6 @@ export class GameComponent implements OnInit, OnDestroy {
     this.soundService.toggleSound();
   }
 
-  // Ventaja de material
   calculateMaterialAdvantage(): void {
     const values: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9 };
     let whiteScore = 0;
@@ -1000,7 +1019,6 @@ export class GameComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Navegación de jugadas (Scrubber)
   scrubToMove(index: number): void {
     const list = this.movesList();
     if (index >= 0 && index < list.length) {
@@ -1042,7 +1060,6 @@ export class GameComponent implements OnInit, OnDestroy {
     this.currentFen.set(this.chess.fen());
   }
 
-  // Acciones de partida
   confirmResignPrompt(): void {
     this.showResignModal.set(true);
   }
@@ -1078,10 +1095,66 @@ export class GameComponent implements OnInit, OnDestroy {
     if (!msg) return;
 
     this.chatInput = '';
-    this.gameService.sendChatMessage(this.gameCode(), msg).subscribe();
+    this.gameService.sendChatMessage(this.gameCode(), msg).subscribe({
+      next: (res) => {
+        if (!this.chatMessages().some(m => m.id === res.chat.id)) {
+          this.chatMessages.update(msgs => [...msgs, res.chat]);
+        }
+      }
+    });
   }
 
-  // Modales y textos de fin de partida
+  /**
+   * Sincronización de respaldo para asegurar que el tablero siempre esté actualizado
+   * incluso si hay fluctuaciones de red en la conexión de WebSockets.
+   */
+  syncGameStateIfOutdated(): void {
+    const g = this.game();
+    if (!g || g.game_status !== 'in_progress') return;
+    const code = this.gameCode();
+    if (!code) return;
+
+    // Solo consultar activamente cuando el turno es del rival para detectar su jugada
+    if (this.currentTurn() !== this.myColor()) {
+      this.gameService.getGame(code).subscribe({
+        next: (res) => {
+          if (res.game.move_count > this.movesList().length || res.game.game_status !== g.game_status) {
+            this.game.set(res.game);
+            this.chess.load(res.game.fen);
+            this.currentFen.set(res.game.fen);
+            this.currentTurn.set(res.game.current_turn);
+            this.whiteTimeMs.set(res.dynamic_clocks.white_time_left_ms);
+            this.blackTimeMs.set(res.dynamic_clocks.black_time_left_ms);
+
+            if (res.game.moves) {
+              this.movesList.set(res.game.moves);
+              if (res.game.moves.length > 0) {
+                const last = res.game.moves[res.game.moves.length - 1];
+                this.lastMove.set({ from: last.from_square, to: last.to_square });
+              }
+            }
+
+            if (res.game.chat_messages) {
+              this.chatMessages.set(res.game.chat_messages);
+            }
+
+            if (this.chess.isCheck()) {
+              this.soundService.playCheck();
+            } else {
+              this.soundService.playMove();
+            }
+
+            this.calculateMaterialAdvantage();
+
+            if (res.game.game_status === 'completed') {
+              this.showGameOverModal.set(true);
+            }
+          }
+        }
+      });
+    }
+  }
+
   isWinner(): boolean {
     const g = this.game();
     const myId = this.authService.currentUser()?.id;
@@ -1108,8 +1181,8 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   ratingChangeText(): string {
-    if (this.isWinner()) return '+16';
-    if (this.isDraw()) return '+0';
-    return '-16';
+    if (this.isWinner()) return '+16 Elo';
+    if (this.isDraw()) return '+0 Elo';
+    return '-16 Elo';
   }
 }

@@ -19,6 +19,7 @@ class GameChallenge extends Model
         'game_mode_id',
         'color_preference',
         'is_rated',
+        'is_private',
         'challenge_status',
         'expires_at',
         'status',
@@ -30,6 +31,7 @@ class GameChallenge extends Model
     {
         return [
             'is_rated' => 'boolean',
+            'is_private' => 'boolean',
             'expires_at' => 'datetime',
             'status' => 'integer',
         ];
