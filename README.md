@@ -1,81 +1,126 @@
-# Plataforma de Ajedrez Multijugador en Tiempo Real ♟️⚡
+# Plataforma de Ajedrez Multijugador en Tiempo Real
 
-Plataforma web de ajedrez online multijugador con validación de movimientos oficiales FIDE, gestión atómica de relojes, emparejamiento por retos y sincronización en tiempo real vía WebSockets.
+Plataforma web de ajedrez online multijugador con validacion de movimientos oficiales FIDE, gestion atomica de relojes, emparejamiento por retos y sincronizacion en tiempo real via WebSockets.
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnologico
 
 * **Monorepositorio:** Estructura modular (`backend/`, `frontend/`).
-* **Base de Datos:** PostgreSQL 16 sobre Docker (administrado con pgAdmin 4).
+* **Base de Datos:** PostgreSQL 16 sobre Docker (puerto `5432`).
 * **Backend:** PHP 8.2+ con Laravel 12 (API REST, Laravel Sanctum).
-* **Tiempo Real / WebSockets:** Laravel Reverb (puerto `8085`, canal `presence-game.{code}`).
-* **Frontend (en desarrollo):** Angular SPA (Signals / RxJS) + Tailwind CSS + `chess.js`.
-* **Auditoría & Seguridad:** Soft Deletes, `user_created`, `user_edited`, contraseñas con hashing Bcrypt (costo 12) y tokens SHA-256.
+* **Tiempo Real / WebSockets:** Laravel Reverb (puerto `8085`, canal de presencia `presence-game.{code}`).
+* **Frontend:** Angular 19 SPA (Signals, RxJS, Tailwind CSS, `chess.js`).
+* **Auditoria y Seguridad:** Soft Deletes, hashing Bcrypt y tokens de acceso personal con Sanctum.
 
 ---
 
-## 🏛️ Arquitectura del Sistema
+## Requisitos Previos en el Equipo
 
-```
-[ Frontend: Angular SPA ] ──(HTTP REST)──► [ Backend: Laravel 12 API ] ──► [ PostgreSQL 16 ]
-         ▲                                           │
-         └──────────(WebSockets / Reverb)────────────┘
-                Canal: presence-game.{code}
-```
-
-### Características Implementadas:
-1. **Autenticación Segura:** Registro e inicio de sesión con email o nombre de usuario (`username`), emisión de Bearer Tokens con Sanctum.
-2. **Sistema de Retos y Salas:** Creación de retos con código único de 8 caracteres, preferencia de piezas (`white`, `black`, `random`) y asignación equitativa en transacción atómica.
-3. **Motor de Juego y Relojes Atómicos:**
-   * Cálculo de tiempo transcurrido en milisegundos sin desfase por latencia.
-   * Caída de bandera automática (`timeout`) si el reloj llega a 0 ms.
-   * Notación estándar PGN, FEN y casillas de origen/destino.
-   * Respaldo para rebobinado de partida jugada a jugada (`fen_after`).
-4. **Sistema de Puntuación Elo FIDE:**
-   * Actualización matemática de puntuaciones tras cada partida (`K=32`).
-   * Clasificaciones separadas por ritmo: Bullet, Blitz, Rapid y Clásico.
-5. **Leaderboards y Perfiles:** Top 50 clasificados por modalidad, porcentaje de victorias (`win_rate`) e historial de partidas.
+Antes de comenzar, asegúrate de tener instaladas las siguientes herramientas:
+1. **Git**
+2. **Node.js** (v18 o superior) y **npm**
+3. **PHP 8.2 o superior** y **Composer**
+   - Asegúrate de habilitar en tu archivo `php.ini` las extensiones:
+     - `extension=pdo_pgsql`
+     - `extension=pgsql`
+     - `extension=mbstring`
+     - `extension=openssl`
+     - `extension=curl`
+     - `extension=fileinfo`
+     - `zend_extension=opcache`
+     - `opcache.enable=1`
+     - `opcache.enable_cli=1`
+4. **Docker Desktop** (para levantar PostgreSQL de forma automatizada)
 
 ---
 
-## 🚀 Puesta en Marcha del Entorno Local
+## Guia de Puesta en Marcha (Paso a Paso)
 
-### 1. Base de Datos (Docker)
+### 1. Clonar el repositorio
+```bash
+git clone <URL_DEL_REPOSITORIO>
+cd chess-plataform
+```
+
+### 2. Levantar la Base de Datos (Docker)
+Inicia el contenedor de PostgreSQL 16:
 ```bash
 docker compose up -d
 ```
 * **Host:** `127.0.0.1:5432`
 * **Base de datos:** `chess_db`
 * **Usuario:** `chess_user`
-* **Contraseña:** `chess_password`
+* **Contrasena:** `chess_password`
 
-### 2. Backend (Laravel API & Reverb)
+### 3. Configurar y Preparar el Backend (Laravel)
+Abre una terminal y ejecuta:
 ```bash
 cd backend
 composer install
 cp .env.example .env
 php artisan key:generate
 php artisan migrate --seed
+php artisan optimize
 ```
+> En Windows PowerShell o CMD, puedes usar `copy .env.example .env`.
 
-#### Iniciar el servidor API REST:
+### 4. Configurar el Frontend (Angular)
+En otra terminal (o desde la raiz del proyecto):
 ```bash
-php artisan serve
-# Escuchando en http://localhost:8000
-```
-
-#### Iniciar el servidor WebSockets (Reverb):
-```bash
-php artisan reverb:start --debug
-# Escuchando en 0.0.0.0:8085
+cd frontend
+npm install
 ```
 
 ---
 
-## 👥 Usuarios de Prueba Sembrados
+## Ejecucion para Demostracion Local
 
-| Usuario | Correo | Contraseña | Elo Inicial |
-| :--- | :--- | :--- | :---: |
-| `jugador1` | `jugador1@chess.local` | `password123` | 1200 |
-| `jugador2` | `jugador2@chess.local` | `password123` | 1200 |
+Para probar la plataforma en vivo necesitas tres terminales activas:
+
+### Terminal 1: Servidor API REST (Backend)
+```bash
+cd backend
+php artisan serve --port=8000
+```
+*Disponible en: `http://127.0.0.1:8000`*
+
+### Terminal 2: Servidor WebSockets (Laravel Reverb)
+```bash
+cd backend
+php artisan reverb:start --port=8085 --debug
+```
+*Escuchando en: `127.0.0.1:8085`*
+
+### Terminal 3: Servidor de Desarrollo (Angular Frontend)
+```bash
+cd frontend
+npm start
+```
+*Disponible en: `http://localhost:4200`*
+
+---
+
+## Guia para la Demostracion en Clase
+
+Para simular una partida entre dos jugadores en la misma computadora:
+
+1. **Ventana 1 (Navegador normal):**
+   - Ingresa a `http://localhost:4200`.
+   - Inicia sesion con el Jugador 1:
+     - **Usuario:** `jugador1`
+     - **Contrasena:** `password123`
+   - Ve a **Jugar** y crea un reto o selecciona una modalidad (ej. Blitz 3+2).
+
+2. **Ventana 2 (Ventana de Incognito o navegador alternativo como Edge/Firefox):**
+   - Ingresa a `http://localhost:4200`.
+   - Inicia sesion con el Jugador 2:
+     - **Usuario:** `jugador2`
+     - **Contrasena:** `password123`
+   - Ve a **Sala y Retos**, localiza la partida creada por `jugador1` y haz clic en **Aceptar Reto** (o pega el enlace directo).
+
+3. **Pruebas en tiempo real:**
+   - Realiza jugadas alternadas en ambas ventanas y observa la sincronizacion instantanea via WebSockets.
+   - Envia mensajes por el chat integrado.
+   - Observa el descuento milimetrico de los relojes de ajedrez.
+   - Prueba las opciones de rendicion, oferta de tablas o fin de partida.
