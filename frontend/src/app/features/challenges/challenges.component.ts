@@ -47,14 +47,14 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
         </div>
       </div>
 
-      <!-- Navegación por Pestañas Especializadas -->
-      <div class="flex items-center gap-2 border-b border-[#292723] pb-3 mb-6">
+      <!-- Navegación por Pestañas Especializadas (Scrollable en móviles) -->
+      <div class="flex items-center gap-2 border-b border-[#292723] pb-3 mb-6 overflow-x-auto no-scrollbar">
         <button type="button"
                 (click)="activeTab.set('public')"
                 [class.text-white]="activeTab() === 'public'"
                 [class.bg-[#262420]]="activeTab() === 'public'"
                 [class.border-[#c5a059]]="activeTab() === 'public'"
-                class="px-4 py-2.5 rounded-xl border border-transparent text-xs font-bold tracking-wide text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
+                class="whitespace-nowrap flex-shrink-0 px-4 py-2.5 rounded-xl border border-transparent text-xs font-bold tracking-wide text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
           <app-icon name="swords" class="w-4 h-4 text-[#779952]"></app-icon>
           <span>Retos Públicos en Vivo</span>
           <span class="px-1.5 py-0.5 rounded-md text-[10px] font-mono bg-[#161512] text-slate-300 border border-[#2b2925]">
@@ -67,7 +67,7 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
                 [class.text-white]="activeTab() === 'private'"
                 [class.bg-[#262420]]="activeTab() === 'private'"
                 [class.border-[#c5a059]]="activeTab() === 'private'"
-                class="px-4 py-2.5 rounded-xl border border-transparent text-xs font-bold tracking-wide text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
+                class="whitespace-nowrap flex-shrink-0 px-4 py-2.5 rounded-xl border border-transparent text-xs font-bold tracking-wide text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
           <svg class="w-4 h-4 text-[#c5a059]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
           </svg>
@@ -79,7 +79,7 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
                 [class.text-white]="activeTab() === 'live'"
                 [class.bg-[#262420]]="activeTab() === 'live'"
                 [class.border-[#c5a059]]="activeTab() === 'live'"
-                class="px-4 py-2.5 rounded-xl border border-transparent text-xs font-bold tracking-wide text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
+                class="whitespace-nowrap flex-shrink-0 px-4 py-2.5 rounded-xl border border-transparent text-xs font-bold tracking-wide text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
           <span>En Directo / TV Espectador</span>
           <span class="px-1.5 py-0.5 rounded-md text-[10px] font-mono bg-[#161512] text-slate-300 border border-[#2b2925]">
@@ -91,16 +91,16 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
       <!-- PESTAÑA 1: RETOS PÚBLICOS ABIERTOS -->
       @if (activeTab() === 'public') {
         
-        <!-- Filtros por Modalidad de Juego -->
-        <div class="flex items-center gap-2 mb-6">
-          <span class="text-xs text-slate-400 font-semibold mr-2">Filtrar por:</span>
+        <!-- Filtros por Modalidad de Juego (Scrollable en móviles) -->
+        <div class="flex items-center gap-2 mb-6 overflow-x-auto no-scrollbar">
+          <span class="text-xs text-slate-400 font-semibold mr-1 whitespace-nowrap flex-shrink-0">Filtrar por:</span>
           @for (filter of ['all', 'blitz', 'rapid', 'bullet']; track filter) {
             <button type="button"
                     (click)="selectedModeFilter.set(filter)"
                     [class.bg-[#292621]]="selectedModeFilter() === filter"
                     [class.text-[#c5a059]]="selectedModeFilter() === filter"
                     [class.border-[#463c2c]]="selectedModeFilter() === filter"
-                    class="px-3 py-1.5 rounded-lg border border-[#2a2824] bg-[#161512] text-xs font-medium text-slate-300 hover:text-white capitalize transition-all">
+                    class="whitespace-nowrap flex-shrink-0 px-3 py-1.5 rounded-lg border border-[#2a2824] bg-[#161512] text-xs font-medium text-slate-300 hover:text-white capitalize transition-all">
               {{ filter === 'all' ? 'Todos los Ritmos' : filter }}
             </button>
           }

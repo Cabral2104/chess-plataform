@@ -124,3 +124,13 @@
     transform: translateY(0);
   }
 }
+
+/* Ocultar barra de desplazamiento en contenedores táctiles horizontales */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

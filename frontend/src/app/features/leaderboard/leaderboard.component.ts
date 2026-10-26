@@ -20,15 +20,15 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
           Puntuación Elo FIDE calculada con factor K=32 para competidores activos
         </p>
 
-        <!-- Selector de Ritmo de Juego Vectorial -->
-        <div class="inline-flex p-1.5 bg-[#171613] border border-[#2b2925] rounded-2xl mt-6 shadow-md">
+        <!-- Selector de Ritmo de Juego Vectorial (Scrollable en móviles) -->
+        <div class="inline-flex max-w-full overflow-x-auto no-scrollbar p-1.5 bg-[#171613] border border-[#2b2925] rounded-2xl mt-6 shadow-md">
           @for (m of modes; track m.slug) {
             <button type="button" 
                     (click)="changeMode(m.slug)"
                     [class.bg-[#262420]]="selectedMode() === m.slug"
                     [class.text-white]="selectedMode() === m.slug"
                     [class.border-[#c5a059]]="selectedMode() === m.slug"
-                    class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 border border-transparent transition-all flex items-center gap-2">
+                    class="whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200 border border-transparent transition-all flex items-center gap-2">
               <app-icon [name]="m.icon" class="w-3.5 h-3.5"></app-icon>
               <span>{{ m.label }}</span>
             </button>
