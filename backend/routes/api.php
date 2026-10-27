@@ -6,7 +6,10 @@ use App\Http\Controllers\Api\GameController;
 use App\Http\Controllers\Api\GameModeController;
 use App\Http\Controllers\Api\LeaderboardController;
 use App\Http\Controllers\Api\UserController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
+
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 /*
 |--------------------------------------------------------------------------

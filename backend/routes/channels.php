@@ -17,7 +17,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
  * Canal de presencia en vivo para la sala de juego.
  * Informa quiénes están conectados, quién es blancas, negras o espectador.
  */
-Broadcast::channel('presence-game.{code}', function ($user, string $code) {
+$gamePresenceCallback = function ($user, string $code) {
     $game = Game::where('code', $code)->first();
     if (!$game) {
         return false;
@@ -37,4 +37,7 @@ Broadcast::channel('presence-game.{code}', function ($user, string $code) {
         'avatar_url' => $user->avatar_url,
         'role' => $role,
     ];
-});
+};
+
+Broadcast::channel('presence-game.{code}', $gamePresenceCallback);
+Broadcast::channel('game.{code}', $gamePresenceCallback);

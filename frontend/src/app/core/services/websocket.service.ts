@@ -24,14 +24,15 @@ export class WebSocketService {
     if (typeof window !== 'undefined') {
       (window as any).Pusher = Pusher;
 
+      const isHttps = environment.reverb.scheme === 'https';
       this.echo = new Echo({
         broadcaster: 'reverb',
         key: environment.reverb.key,
         wsHost: environment.reverb.host,
         wsPort: environment.reverb.port,
         wssPort: environment.reverb.port,
-        forceTLS: environment.reverb.scheme === 'https',
-        enabledTransports: ['ws', 'wss'],
+        forceTLS: isHttps,
+        enabledTransports: isHttps ? ['wss'] : ['ws'],
         authorizer: (channel: any) => {
           return {
             authorize: (socketId: string, callback: Function) => {
