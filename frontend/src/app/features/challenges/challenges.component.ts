@@ -2,391 +2,316 @@ import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Chess } from 'chess.js';
 import { GameService } from '../../core/services/game.service';
 import { AuthService } from '../../core/services/auth.service';
 import { GameChallenge, Game, getUserRating } from '../../core/models';
 import { IconComponent, IconName } from '../../shared/components/icon/icon.component';
+import { ChessPieceComponent } from '../../shared/components/chess-piece/chess-piece.component';
+
+interface MiniSquare {
+  isLight: boolean;
+  pieceKey: string | null;
+}
 
 @Component({
   selector: 'app-challenges',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, IconComponent],
+  imports: [CommonModule, RouterLink, FormsModule, IconComponent, ChessPieceComponent],
   template: `
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 fade-in">
-      
-      <!-- Cabecera de la Sección Salas y Retos -->
-      <div class="bg-[#1b1a17] border border-[#2b2925] rounded-2xl p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#27241e] to-[#171613] border border-[#3e392f] flex items-center justify-center text-[#c5a059] shadow-inner">
-            <app-icon name="board" class="w-6 h-6"></app-icon>
-          </div>
-          <div>
-            <h1 class="text-xl font-bold text-slate-100 tracking-tight flex items-center gap-2">
-              <span>Salas de Partida y Retos de la Comunidad</span>
-              <span class="w-2 h-2 rounded-full bg-[#779952] animate-pulse"></span>
-            </h1>
-            <p class="text-xs text-slate-400 mt-0.5">
-              Acepta retos públicos abiertos, únete a una sala privada con código o sintoniza partidas en directo.
-            </p>
-          </div>
+    <div class="page fade-in">
+
+      <!-- Cabecera -->
+      <header class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-5">
+        <div>
+          <div class="eyebrow mb-1.5">Comunidad en Tiempo Real</div>
+          <h1 class="font-display text-3xl sm:text-5xl font-extrabold text-white leading-[1.05] flex items-center gap-3">
+            <span>Salas y Chess TV</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#2bb5a0] animate-pulse"></span>
+          </h1>
+          <p class="text-sm text-slate-400 mt-1.5 max-w-xl">
+            Desafía a jugadores esperando en sala, ingresa con código de invitación o sintoniza tableros en directo.
+          </p>
         </div>
-
-        <div class="flex items-center gap-3">
-          <button (click)="refreshAll()" 
-                  title="Actualizar datos en tiempo real"
-                  class="px-3.5 py-2 rounded-xl bg-[#161512] hover:bg-[#22201c] border border-[#2e2c27] text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center gap-2">
-            <app-icon name="refresh" class="w-3.5 h-3.5"></app-icon>
-            <span>Refrescar</span>
+        <div class="grid grid-cols-2 gap-2 md:flex shrink-0">
+          <button (click)="refreshAll()" class="btn btn-ghost !py-2.5 !text-xs">
+            <app-icon name="refresh" class="w-4 h-4"></app-icon>
+            <span>Actualizar</span>
           </button>
-
-          <a routerLink="/lobby" 
-             class="px-4 py-2 rounded-xl bg-[#779952] hover:bg-[#86aa5d] text-white text-xs font-bold shadow-md transition-all flex items-center gap-2 active:scale-95">
-            <app-icon name="plus" class="w-3.5 h-3.5"></app-icon>
-            <span>Crear Mi Propia Sala</span>
+          <a routerLink="/lobby" class="btn btn-primary !py-2.5 !text-xs">
+            <app-icon name="plus" class="w-4 h-4"></app-icon>
+            <span>Crear Sala</span>
           </a>
         </div>
+      </header>
+
+      <!-- Barra de Pestañas + Buscador -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-6 border-b border-[#222c4e]">
+        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
+          <button type="button" (click)="activeTab.set('public')"
+                  class="opt shrink-0 px-4 py-2.5 text-xs font-bold flex items-center gap-2"
+                  [class.is-active]="activeTab() === 'public'">
+            <app-icon name="swords" class="w-4 h-4 text-[#45d4be]"></app-icon>
+            <span>Retos Abiertos</span>
+            <span class="px-1.5 py-0.2 rounded-md text-[10px] font-mono bg-[#0b1020]">{{ filteredChallenges().length }}</span>
+          </button>
+
+          <button type="button" (click)="activeTab.set('live')"
+                  class="opt shrink-0 px-4 py-2.5 text-xs font-bold flex items-center gap-2"
+                  [class.is-active]="activeTab() === 'live'">
+            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+            <span>Chess TV en Vivo</span>
+            <span class="px-1.5 py-0.2 rounded-md text-[10px] font-mono bg-[#0b1020]">{{ activeGames().length }}</span>
+          </button>
+
+          <button type="button" (click)="activeTab.set('private')"
+                  class="opt shrink-0 px-4 py-2.5 text-xs font-bold flex items-center gap-2"
+                  [class.is-active-gold]="activeTab() === 'private'">
+            <svg class="w-4 h-4 text-[#f4b942]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+            <span>Código Privado</span>
+          </button>
+        </div>
+
+        @if (activeTab() === 'public') {
+          <div class="w-full sm:w-64">
+            <input type="text"
+                   [(ngModel)]="searchQuery"
+                   placeholder="Buscar jugador o ritmo..."
+                   class="field !py-2 !text-xs">
+          </div>
+        }
       </div>
 
-      <!-- Navegación por Pestañas Especializadas (Scrollable en móviles) -->
-      <div class="flex items-center gap-2 border-b border-[#292723] pb-3 mb-6 overflow-x-auto no-scrollbar">
-        <button type="button"
-                (click)="activeTab.set('public')"
-                [class.text-white]="activeTab() === 'public'"
-                [class.bg-[#262420]]="activeTab() === 'public'"
-                [class.border-[#c5a059]]="activeTab() === 'public'"
-                class="whitespace-nowrap flex-shrink-0 px-4 py-2.5 rounded-xl border border-transparent text-xs font-bold tracking-wide text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
-          <app-icon name="swords" class="w-4 h-4 text-[#779952]"></app-icon>
-          <span>Retos Públicos en Vivo</span>
-          <span class="px-1.5 py-0.5 rounded-md text-[10px] font-mono bg-[#161512] text-slate-300 border border-[#2b2925]">
-            {{ filteredChallenges().length }}
-          </span>
-        </button>
-
-        <button type="button"
-                (click)="activeTab.set('private')"
-                [class.text-white]="activeTab() === 'private'"
-                [class.bg-[#262420]]="activeTab() === 'private'"
-                [class.border-[#c5a059]]="activeTab() === 'private'"
-                class="whitespace-nowrap flex-shrink-0 px-4 py-2.5 rounded-xl border border-transparent text-xs font-bold tracking-wide text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
-          <svg class="w-4 h-4 text-[#c5a059]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-          </svg>
-          <span>Unirse por Código Privado</span>
-        </button>
-
-        <button type="button"
-                (click)="activeTab.set('live')"
-                [class.text-white]="activeTab() === 'live'"
-                [class.bg-[#262420]]="activeTab() === 'live'"
-                [class.border-[#c5a059]]="activeTab() === 'live'"
-                class="whitespace-nowrap flex-shrink-0 px-4 py-2.5 rounded-xl border border-transparent text-xs font-bold tracking-wide text-slate-400 hover:text-slate-200 transition-all flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-          <span>En Directo / TV Espectador</span>
-          <span class="px-1.5 py-0.5 rounded-md text-[10px] font-mono bg-[#161512] text-slate-300 border border-[#2b2925]">
-            {{ activeGames().length }}
-          </span>
-        </button>
-      </div>
-
-      <!-- PESTAÑA 1: RETOS PÚBLICOS ABIERTOS -->
+      <!-- ===== PESTAÑA 1: RETOS ABIERTOS ===== -->
       @if (activeTab() === 'public') {
-        
-        <!-- Filtros por Modalidad de Juego (Scrollable en móviles) -->
-        <div class="flex items-center gap-2 mb-6 overflow-x-auto no-scrollbar">
-          <span class="text-xs text-slate-400 font-semibold mr-1 whitespace-nowrap flex-shrink-0">Filtrar por:</span>
+        <div class="flex items-center gap-2 mb-5 overflow-x-auto no-scrollbar -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
           @for (filter of ['all', 'blitz', 'rapid', 'bullet']; track filter) {
-            <button type="button"
-                    (click)="selectedModeFilter.set(filter)"
-                    [class.bg-[#292621]]="selectedModeFilter() === filter"
-                    [class.text-[#c5a059]]="selectedModeFilter() === filter"
-                    [class.border-[#463c2c]]="selectedModeFilter() === filter"
-                    class="whitespace-nowrap flex-shrink-0 px-3 py-1.5 rounded-lg border border-[#2a2824] bg-[#161512] text-xs font-medium text-slate-300 hover:text-white capitalize transition-all">
-              {{ filter === 'all' ? 'Todos los Ritmos' : filter }}
+            <button type="button" (click)="selectedModeFilter.set(filter)"
+                    class="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold capitalize border"
+                    [class.bg-[#2bb5a0]]="selectedModeFilter() === filter"
+                    [class.text-[#04141a]]="selectedModeFilter() === filter"
+                    [class.border-[#2bb5a0]]="selectedModeFilter() === filter"
+                    [class.border-[#222c4e]]="selectedModeFilter() !== filter"
+                    [class.text-slate-300]="selectedModeFilter() !== filter">
+              {{ filter === 'all' ? 'Todos los ritmos' : filter }}
             </button>
           }
         </div>
 
         @if (isLoadingChallenges()) {
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             @for (i of [1,2,3,4,5,6]; track i) {
-              <div class="h-36 bg-[#181714] rounded-2xl animate-pulse border border-[#262420]"></div>
+              <div class="h-44 surface animate-pulse"></div>
             }
           </div>
         } @else if (filteredChallenges().length === 0) {
-          <div class="bg-[#1b1a17] border border-[#2b2925] rounded-2xl p-12 text-center">
-            <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-[#22201c] border border-[#33302a] flex items-center justify-center text-slate-500">
-              <app-icon name="swords" class="w-7 h-7"></app-icon>
-            </div>
-            <h3 class="text-base font-bold text-slate-200">No hay retos abiertos en esta modalidad</h3>
-            <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-              Crea tu propia sala pública para que cualquier jugador en línea pueda desafiarte de inmediato.
+          <div class="surface p-10 sm:p-14 text-center">
+            <app-icon name="swords" class="w-10 h-10 mx-auto text-slate-500 mb-3"></app-icon>
+            <h3 class="font-display text-xl font-bold text-white">No hay retos abiertos con este filtro</h3>
+            <p class="text-sm text-slate-400 mt-1 max-w-sm mx-auto">
+              Sé el primero en abrir una sala pública para que cualquier jugador conectado acepte tu desafío.
             </p>
-            <a routerLink="/lobby" 
-               class="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#779952] hover:bg-[#86aa5d] text-white text-xs font-bold transition-all shadow-md">
+            <a routerLink="/lobby" class="btn btn-primary mt-6">
               <app-icon name="plus" class="w-4 h-4"></app-icon>
-              <span>Crear Reto Abierto</span>
+              <span>Crear reto abierto</span>
             </a>
           </div>
         } @else {
-          <!-- Grilla de Tarjetas de Retos Públicos -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             @for (chal of filteredChallenges(); track chal.id) {
-              <div class="bg-[#1b1a17] rounded-2xl p-5 border border-[#2b2925] hover:border-[#3e3b33] transition-all flex flex-col justify-between gap-4 shadow-lg group">
-                
-                <!-- Encabezado de la Tarjeta: Jugador y Elo Real -->
+              <article class="surface p-5 flex flex-col justify-between gap-4 hover:border-[#334272]">
                 <div class="flex items-start justify-between gap-3">
-                  <div class="flex items-center gap-3">
-                    <img [src]="chal.challenger?.avatar_url" 
+                  <div class="flex items-center gap-3 min-w-0">
+                    <img [src]="chal.challenger?.avatar_url"
                          [alt]="chal.challenger?.username"
-                         class="w-10 h-10 rounded-full bg-[#24221e] border border-[#3e3b35]">
-                    <div>
+                         class="w-11 h-11 rounded-xl bg-[#161e36] ring-1 ring-[#2a3660] shrink-0">
+                    <div class="min-w-0">
                       <div class="flex items-center gap-1.5">
-                        <span class="text-sm font-bold text-slate-100 group-hover:text-white">
-                          {{ chal.challenger?.username }}
-                        </span>
-                        <span class="w-1.5 h-1.5 rounded-full bg-[#779952]"></span>
+                        <span class="fide-badge !px-1 !py-0 !text-[9px]">{{ getFideTitle(getPlayerElo(chal)) }}</span>
+                        <span class="text-sm font-bold text-white truncate">{{ chal.challenger?.username }}</span>
                       </div>
-                      
-                      <!-- Elo Real FIDE obtenido dinámicamente -->
-                      <span class="text-xs text-[#c5a059] font-mono font-semibold flex items-center gap-1 mt-0.5">
-                        <app-icon name="trophy" class="w-3 h-3 text-[#c5a059]"></app-icon>
-                        {{ getPlayerElo(chal) }} Elo ({{ chal.game_mode?.type || 'Blitz' }})
-                      </span>
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-xs text-[#f4b942] font-mono font-bold">{{ getPlayerElo(chal) }} Elo</span>
+                        <span class="text-[10px] font-mono text-slate-400">({{ getEloDiffLabel(chal) }})</span>
+                      </div>
                     </div>
                   </div>
-
-                  <!-- Badge Modalidad -->
-                  <span class="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase tracking-wider font-semibold"
-                        [class.bg-[#242b1d]]="chal.is_rated"
-                        [class.text-[#86aa5d]]="chal.is_rated"
-                        [class.border-[#344026]]="chal.is_rated"
-                        [class.bg-[#252320]]="!chal.is_rated"
-                        [class.text-slate-400]="!chal.is_rated"
-                        [class.border-[#383530]]="!chal.is_rated"
-                        class="border">
-                    {{ chal.is_rated ? 'Rankeada' : 'Casual' }}
+                  <span class="chip shrink-0" [class.!text-[#f4b942]]="chal.is_rated">
+                    {{ chal.is_rated ? 'Rankeada' : 'Amistosa' }}
                   </span>
                 </div>
 
-                <!-- Detalles de la Partida: Ritmo y Color -->
-                <div class="bg-[#141311] p-3 rounded-xl border border-[#24221f] flex items-center justify-between text-xs">
-                  <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-md bg-[#22201c] flex items-center justify-center text-slate-300">
-                      <app-icon [name]="getModeIcon(chal.game_mode?.type)" class="w-3.5 h-3.5"></app-icon>
+                <!-- Especificación técnica del reto -->
+                <div class="surface-2 p-3.5 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-[#0d1221] border border-[#222c4e] flex items-center justify-center text-[#45d4be]">
+                      <app-icon [name]="getModeIcon(chal.game_mode?.type)" class="w-5 h-5"></app-icon>
                     </div>
                     <div>
-                      <span class="font-bold text-slate-200 block leading-tight">{{ chal.game_mode?.name }}</span>
-                      <span class="text-[10px] text-slate-400 font-mono">
-                        {{ ((chal.game_mode?.initial_time_seconds || 180) / 60) }}m + {{ chal.game_mode?.increment_seconds || 0 }}s
-                      </span>
+                      <div class="font-display text-2xl font-extrabold text-white leading-none">
+                        {{ (chal.game_mode?.initial_time_seconds || 180) / 60 }}<span class="text-[#45d4be]">+{{ chal.game_mode?.increment_seconds || 0 }}</span>
+                      </div>
+                      <div class="text-[11px] text-slate-400 mt-1 font-semibold">{{ chal.game_mode?.name }}</div>
                     </div>
                   </div>
 
-                  <div class="flex items-center gap-1.5 text-[11px] text-slate-300 font-medium">
-                    <span class="text-slate-500">Juega:</span>
-                    @if (chal.color_preference === 'white') {
-                      <span class="inline-flex items-center gap-1">
-                        <span class="w-3 h-3 rounded-full bg-[#f0d9b5] border border-white/40"></span>
-                        Blancas
-                      </span>
-                    } @else if (chal.color_preference === 'black') {
-                      <span class="inline-flex items-center gap-1">
-                        <span class="w-3 h-3 rounded-full bg-[#201e1b] border border-[#444]"></span>
-                        Negras
-                      </span>
-                    } @else {
-                      <span class="inline-flex items-center gap-1">
-                        <span class="w-3 h-3 rounded-full bg-gradient-to-r from-[#f0d9b5] to-[#201e1b]"></span>
-                        Aleatorio
-                      </span>
-                    }
-                  </div>
-                </div>
-
-                <!-- Botón de Acción -->
-                <div>
-                  @if (chal.challenger_id === authService.currentUser()?.id) {
-                    <div class="flex items-center justify-between gap-2">
-                      <span class="text-xs text-[#c5a059] italic flex items-center gap-1 font-mono">
-                        <app-icon name="hourglass" class="w-3.5 h-3.5"></app-icon>
-                        Tu sala en espera...
-                      </span>
-                      <button (click)="cancelMyChallenge(chal.code)" 
-                              class="px-3 py-1.5 rounded-lg bg-[#252320] hover:bg-red-950/40 text-slate-300 hover:text-red-400 text-xs border border-[#383530] transition-colors">
-                        Cancelar
-                      </button>
-                    </div>
-                  } @else {
-                    <button (click)="acceptChallenge(chal.code)"
-                            [disabled]="isAcceptingCode() === chal.code"
-                            class="w-full py-2.5 px-4 rounded-xl bg-[#779952] hover:bg-[#86aa5d] disabled:opacity-50 text-white font-bold text-xs shadow transition-all flex items-center justify-center gap-2 active:scale-98">
-                      @if (isAcceptingCode() === chal.code) {
-                        <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
-                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                        </svg>
-                        <span>Conectando...</span>
+                  <div class="text-right">
+                    <span class="eyebrow !text-[9px] block">Rival juega</span>
+                    <div class="inline-flex items-center gap-1.5 text-xs font-bold text-white mt-0.5">
+                      @if (chal.color_preference === 'white') {
+                        <span class="w-3.5 h-3.5 rounded-full bg-white border border-slate-300"></span>Blancas
+                      } @else if (chal.color_preference === 'black') {
+                        <span class="w-3.5 h-3.5 rounded-full bg-[#0d1221] border border-[#4a5a8f]"></span>Negras
                       } @else {
-                        <app-icon name="swords" class="w-3.5 h-3.5"></app-icon>
-                        <span>Aceptar Reto</span>
+                        <span class="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-white to-[#0d1221]"></span>Azar
                       }
-                    </button>
-                  }
+                    </div>
+                  </div>
                 </div>
 
-              </div>
+                @if (chal.challenger_id === authService.currentUser()?.id) {
+                  <div class="flex items-center justify-between gap-2 pt-1">
+                    <span class="text-xs text-[#f4b942] flex items-center gap-1.5 font-semibold">
+                      <app-icon name="hourglass" class="w-4 h-4 animate-spin"></app-icon>
+                      <span>Tu reto (#{{ chal.code }})</span>
+                    </span>
+                    <button (click)="cancelMyChallenge(chal.code)" class="btn btn-ghost !py-2 !px-3.5 !text-xs hover:!text-red-400">
+                      Cancelar
+                    </button>
+                  </div>
+                } @else {
+                  <button (click)="acceptChallenge(chal.code)"
+                          [disabled]="isAcceptingCode() === chal.code"
+                          class="btn btn-primary w-full !py-2.5">
+                    @if (isAcceptingCode() === chal.code) {
+                      <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                      </svg>
+                      <span>Entrando a la arena...</span>
+                    } @else {
+                      <app-icon name="swords" class="w-4 h-4"></app-icon>
+                      <span>Aceptar Desafío</span>
+                    }
+                  </button>
+                }
+              </article>
             }
           </div>
         }
-
       }
 
-      <!-- PESTAÑA 2: UNIRSE A SALA PRIVADA CON CÓDIGO -->
+      <!-- ===== PESTAÑA 2: CHESS TV CON MINI-TABLEROS EN VIVO ===== -->
+      @if (activeTab() === 'live') {
+        @if (isLoadingGames()) {
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            @for (i of [1,2,3]; track i) {
+              <div class="h-72 surface animate-pulse"></div>
+            }
+          </div>
+        } @else if (activeGames().length === 0) {
+          <div class="surface p-10 sm:p-14 text-center">
+            <app-icon name="board" class="w-10 h-10 mx-auto text-slate-500 mb-3"></app-icon>
+            <h3 class="font-display text-xl font-bold text-white">No hay emisiones en directo ahora mismo</h3>
+            <p class="text-sm text-slate-400 mt-1 max-w-sm mx-auto">
+              En cuanto dos jugadores inicien una partida, verás su tablero en tiempo real aquí.
+            </p>
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            @for (game of activeGames(); track game.id) {
+              <article class="surface p-4 flex flex-col gap-3.5 hover:border-[#334272]">
+                <div class="flex items-center justify-between">
+                  <span class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wider text-red-400 font-mono">
+                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                    <span>En Directo &middot; Jugada #{{ game.move_count }}</span>
+                  </span>
+                  <span class="chip !text-[#f4b942]">{{ game.game_mode?.name }}</span>
+                </div>
+
+                <!-- Jugador Negras (arriba del mini-tablero) -->
+                <div class="flex items-center justify-between px-1 text-xs">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="w-3 h-3 rounded-full bg-[#0d1221] border border-[#4a5a8f] shrink-0"></span>
+                    <span class="font-bold text-slate-200 truncate">{{ game.black_player?.username }}</span>
+                  </div>
+                  <span class="font-mono text-[#f4b942] font-bold">{{ getPlayerEloDirect(game.black_player, game.game_mode?.type) }}</span>
+                </div>
+
+                <!-- MINI-TABLERO EN TIEMPO REAL RENDERIZADO DESDE EL FEN -->
+                <a [routerLink]="['/game', game.code]"
+                   class="block w-48 h-48 sm:w-52 sm:h-52 mx-auto rounded-xl overflow-hidden border-2 border-[#28345c] shadow-lg group relative">
+                  <div class="grid grid-cols-8 grid-rows-8 w-full h-full">
+                    @for (sq of getMiniBoard(game.fen); track $index) {
+                      <div class="flex items-center justify-center"
+                           [class.bg-[#e4efe9]]="sq.isLight"
+                           [class.bg-[#2bb5a0]]="!sq.isLight">
+                        @if (sq.pieceKey) {
+                          <app-chess-piece [pieceKey]="sq.pieceKey" class="w-full h-full p-[4%]"></app-chess-piece>
+                        }
+                      </div>
+                    }
+                  </div>
+                  <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <span class="btn btn-primary !py-2 !px-4 !text-xs">Entrar a Chess TV</span>
+                  </div>
+                </a>
+
+                <!-- Jugador Blancas (abajo del mini-tablero) -->
+                <div class="flex items-center justify-between px-1 text-xs">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="w-3 h-3 rounded-full bg-white border border-slate-300 shrink-0"></span>
+                    <span class="font-bold text-slate-200 truncate">{{ game.white_player?.username }}</span>
+                  </div>
+                  <span class="font-mono text-[#f4b942] font-bold">{{ getPlayerEloDirect(game.white_player, game.game_mode?.type) }}</span>
+                </div>
+
+                <a [routerLink]="['/game', game.code]" class="btn btn-ghost w-full !py-2.5 !text-xs">
+                  <span>Observar partida en vivo</span>
+                </a>
+              </article>
+            }
+          </div>
+        }
+      }
+
+      <!-- ===== PESTAÑA 3: UNIRSE CON CÓDIGO PRIVADO ===== -->
       @if (activeTab() === 'private') {
-        <div class="max-w-xl mx-auto py-6">
-          <div class="bg-[#1b1a17] border border-[#2b2925] rounded-2xl p-8 shadow-2xl text-center">
-            
-            <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#27241e] to-[#181714] border border-[#3e392f] flex items-center justify-center text-[#c5a059] shadow-inner">
+        <div class="max-w-xl mx-auto py-4">
+          <div class="surface p-6 sm:p-9 text-center">
+            <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[#f4b942]/15 border border-[#f4b942]/30 flex items-center justify-center text-[#f4b942]">
               <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
               </svg>
             </div>
+            <h2 class="font-display text-2xl font-bold text-white">Ingresar con Código de Invitación</h2>
+            <p class="text-sm text-slate-400 mt-1">Introduce el código de 8 caracteres que te envió tu oponente.</p>
 
-            <h2 class="text-xl font-bold text-slate-100">Unirse a Partida Privada</h2>
-            <p class="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-              Ingresa el código alfanumérico que te compartió tu rival para entrar a la sala de juego exclusiva.
-            </p>
-
-            <form (ngSubmit)="joinPrivateRoom()" class="mt-8 space-y-4">
-              <div>
-                <label for="privateCode" class="block text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-2">
-                  Código de Sala (8 Caracteres)
-                </label>
-                <input id="privateCode"
-                       type="text" 
-                       [(ngModel)]="privateCodeInput" 
-                       name="privateCode"
-                       maxlength="12"
-                       placeholder="EJ: CH8A29FZ"
-                       class="w-full max-w-xs mx-auto text-center px-4 py-3.5 rounded-xl bg-[#131210] border border-[#383530] text-xl font-mono font-bold tracking-widest text-[#c5a059] uppercase focus:outline-none focus:border-[#c5a059] focus:ring-1 focus:ring-[#c5a059] transition-all placeholder:text-slate-600">
-              </div>
-
+            <form (ngSubmit)="joinPrivateRoom()" class="mt-7 space-y-4">
+              <input id="privateCode" type="text" [(ngModel)]="privateCodeInput" name="privateCode" maxlength="12"
+                     placeholder="CH8A29FZ" autocomplete="off"
+                     class="field !text-center !text-2xl font-mono font-bold tracking-[0.3em] uppercase !text-[#f4b942] !py-4">
               @if (privateError()) {
-                <div class="p-3 rounded-xl bg-red-950/30 border border-red-800/40 text-red-300 text-xs max-w-xs mx-auto">
-                  {{ privateError() }}
-                </div>
+                <div class="p-3 rounded-xl bg-red-950/40 border border-red-800/50 text-red-300 text-xs">{{ privateError() }}</div>
               }
-
-              <button type="submit" 
-                      [disabled]="!privateCodeInput.trim() || isJoiningPrivate()"
-                      class="w-full max-w-xs mx-auto py-3.5 px-6 rounded-xl bg-[#779952] hover:bg-[#86aa5d] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm shadow-xl transition-all flex items-center justify-center gap-2 transform active:scale-98">
+              <button type="submit" [disabled]="!privateCodeInput.trim() || isJoiningPrivate()" class="btn btn-primary w-full !py-3.5">
                 @if (isJoiningPrivate()) {
-                  <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                   </svg>
-                  <span>Verificando sala privada...</span>
+                  <span>Verificando sala...</span>
                 } @else {
                   <app-icon name="swords" class="w-4 h-4"></app-icon>
                   <span>Entrar a la Partida</span>
                 }
               </button>
             </form>
-
-            <div class="mt-8 pt-6 border-t border-[#292723] text-[11px] text-slate-500 text-left space-y-1">
-              <p class="font-semibold text-slate-400">Instrucciones de Salas Privadas:</p>
-              <p>&bull; Las partidas privadas no aparecen en la lista pública de retos.</p>
-              <p>&bull; Solo tú y la persona que tiene el código pueden disputar la partida.</p>
-              <p>&bull; ¿Quieres crear una? Ve a <a routerLink="/lobby" class="text-[#c5a059] underline">Jugar</a> y selecciona "Sala Privada con Invitación".</p>
-            </div>
-
           </div>
         </div>
       }
-
-      <!-- PESTAÑA 3: EN DIRECTO / CHESS TV (ESPECTADOR) -->
-      @if (activeTab() === 'live') {
-        @if (isLoadingGames()) {
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            @for (i of [1,2,3]; track i) {
-              <div class="h-44 bg-[#181714] rounded-2xl animate-pulse border border-[#262420]"></div>
-            }
-          </div>
-        } @else if (activeGames().length === 0) {
-          <div class="bg-[#1b1a17] border border-[#2b2925] rounded-2xl p-12 text-center">
-            <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-[#22201c] border border-[#33302a] flex items-center justify-center text-slate-500">
-              <app-icon name="board" class="w-7 h-7"></app-icon>
-            </div>
-            <h3 class="text-base font-bold text-slate-200">No hay partidas activas en curso en este instante</h3>
-            <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-              Cuando los jugadores inicien sus partidas, aparecerán aquí para que puedas observarlas como espectador en directo.
-            </p>
-          </div>
-        } @else {
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            @for (game of activeGames(); track game.id) {
-              <div class="bg-[#1b1a17] rounded-2xl p-5 border border-[#2b2925] hover:border-[#3e3b33] transition-all flex flex-col justify-between gap-4 shadow-lg group">
-                
-                <!-- Encabezado de la Partida en Vivo -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                    <span class="text-xs font-bold text-red-400 uppercase tracking-wider font-mono">En Vivo</span>
-                  </div>
-                  <span class="text-[11px] font-mono text-[#c5a059] bg-[#221f18] px-2 py-0.5 rounded border border-[#3d3627]">
-                    {{ game.game_mode?.name }}
-                  </span>
-                </div>
-
-                <!-- Enfrentamiento Blancas vs Negras con Elo Real -->
-                <div class="space-y-2 bg-[#141311] p-3.5 rounded-xl border border-[#24221f]">
-                  <!-- Blancas -->
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                      <span class="w-3.5 h-3.5 rounded-full bg-[#f0d9b5] border border-white/50 shrink-0"></span>
-                      <span class="text-xs font-bold text-slate-200">{{ game.white_player?.username }}</span>
-                    </div>
-                    <span class="text-xs font-mono text-[#c5a059] font-semibold">
-                      {{ getPlayerEloDirect(game.white_player, game.game_mode?.type) }}
-                    </span>
-                  </div>
-
-                  <div class="border-t border-[#22201c] my-1"></div>
-
-                  <!-- Negras -->
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2.5">
-                      <span class="w-3.5 h-3.5 rounded-full bg-[#201e1b] border border-[#3e3b35] shrink-0"></span>
-                      <span class="text-xs font-bold text-slate-200">{{ game.black_player?.username }}</span>
-                    </div>
-                    <span class="text-xs font-mono text-[#c5a059] font-semibold">
-                      {{ getPlayerEloDirect(game.black_player, game.game_mode?.type) }}
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Información de Movimientos y Botón Espectador -->
-                <div class="flex items-center justify-between gap-3 pt-1">
-                  <span class="text-[11px] text-slate-400 font-mono">
-                    Jugada #{{ game.move_count }}
-                  </span>
-
-                  <a [routerLink]="['/game', game.code]" 
-                     class="px-4 py-1.5 rounded-lg bg-[#272420] hover:bg-[#343029] border border-[#3d382f] text-slate-200 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors">
-                    <svg class="w-3.5 h-3.5 text-[#c5a059]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                    </svg>
-                    <span>Observar</span>
-                  </a>
-                </div>
-
-              </div>
-            }
-          </div>
-        }
-      }
-
     </div>
   `
 })
@@ -397,6 +322,7 @@ export class ChallengesComponent implements OnInit, OnDestroy {
 
   activeTab = signal<'public' | 'private' | 'live'>('public');
   selectedModeFilter = signal<string>('all');
+  searchQuery = '';
 
   challenges = signal<GameChallenge[]>([]);
   activeGames = signal<Game[]>([]);
@@ -405,30 +331,35 @@ export class ChallengesComponent implements OnInit, OnDestroy {
   isLoadingGames = signal<boolean>(false);
   isAcceptingCode = signal<string | null>(null);
 
-  // Formulario de sala privada
   privateCodeInput = '';
   isJoiningPrivate = signal<boolean>(false);
   privateError = signal<string | null>(null);
 
   private pollInterval: any;
+  private isFetchingChallenges = false;
+  private isFetchingGames = false;
 
   filteredChallenges = computed(() => {
     const list = this.challenges();
     const filter = this.selectedModeFilter();
-    if (filter === 'all') return list;
-    return list.filter(c => c.game_mode?.type === filter);
+    const q = this.searchQuery.trim().toLowerCase();
+    return list.filter(c => {
+      const modeOk = filter === 'all' || c.game_mode?.type === filter;
+      const queryOk =
+        !q ||
+        (c.challenger?.username || '').toLowerCase().includes(q) ||
+        (c.game_mode?.name || '').toLowerCase().includes(q) ||
+        (c.code || '').toLowerCase().includes(q);
+      return modeOk && queryOk;
+    });
   });
 
-  private isFetchingChallenges = false;
-  private isFetchingGames = false;
-
   ngOnInit(): void {
-    this.refreshAll();
+    this.loadChallenges();
+    this.loadActiveGames();
 
-    // Sondeo inteligente cada 5 segundos respetando visibilidad de pestaña y evitando solicitudes en vuelo
     this.pollInterval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
-
       if (this.activeTab() === 'public') {
         this.loadChallenges();
       } else if (this.activeTab() === 'live') {
@@ -444,11 +375,8 @@ export class ChallengesComponent implements OnInit, OnDestroy {
   }
 
   refreshAll(): void {
-    if (this.activeTab() === 'public') {
-      this.loadChallenges();
-    } else {
-      this.loadActiveGames();
-    }
+    this.loadChallenges();
+    this.loadActiveGames();
   }
 
   loadChallenges(): void {
@@ -485,12 +413,52 @@ export class ChallengesComponent implements OnInit, OnDestroy {
     });
   }
 
+  getFideTitle(rating: number): string {
+    if (rating >= 2000) return 'GM';
+    if (rating >= 1800) return 'IM';
+    if (rating >= 1600) return 'FM';
+    if (rating >= 1400) return 'CM';
+    return 'CLUB';
+  }
+
   getPlayerElo(challenge: GameChallenge): number {
     return getUserRating(challenge.challenger, challenge.game_mode?.type || 'blitz');
   }
 
+  getEloDiffLabel(challenge: GameChallenge): string {
+    const mode = challenge.game_mode?.type || 'blitz';
+    const myElo = getUserRating(this.authService.currentUser(), mode);
+    const oppElo = this.getPlayerElo(challenge);
+    const diff = oppElo - myElo;
+    if (Math.abs(diff) <= 25) return 'Parejo';
+    return diff > 0 ? `+${diff}` : `${diff}`;
+  }
+
   getPlayerEloDirect(user: any, modeType?: string): number {
     return getUserRating(user, modeType || 'blitz');
+  }
+
+  getMiniBoard(fen?: string): MiniSquare[] {
+    try {
+      const c = new Chess(fen || undefined);
+      const b = c.board();
+      const out: MiniSquare[] = [];
+      for (let r = 0; r < 8; r++) {
+        for (let f = 0; f < 8; f++) {
+          const cell = b[r][f];
+          out.push({
+            isLight: (r + f) % 2 === 0,
+            pieceKey: cell ? `${cell.color}${cell.type.toUpperCase()}` : null,
+          });
+        }
+      }
+      return out;
+    } catch {
+      return Array.from({ length: 64 }, (_, i) => ({
+        isLight: (Math.floor(i / 8) + i) % 2 === 0,
+        pieceKey: null,
+      }));
+    }
   }
 
   getModeIcon(type?: string): IconName {

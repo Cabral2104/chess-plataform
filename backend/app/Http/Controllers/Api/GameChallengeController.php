@@ -150,6 +150,19 @@ class GameChallengeController extends Controller
             $challengerId = $challenge->challenger_id;
             $acceptorId = $user->id;
 
+            // Cerrar cualquier partida de prueba anterior que haya quedado colgada en 'in_progress' para estos jugadores
+            Game::where('game_status', 'in_progress')
+                ->where(function ($q) use ($challengerId, $acceptorId) {
+                    $q->whereIn('white_player_id', [$challengerId, $acceptorId])
+                      ->orWhereIn('black_player_id', [$challengerId, $acceptorId]);
+                })
+                ->update([
+                    'game_status' => 'completed',
+                    'end_reason' => 'aborted',
+                    'ended_at' => now(),
+                    'draw_offered_by' => null,
+                ]);
+
             if ($challenge->color_preference === 'white') {
                 $whiteId = $challengerId;
                 $blackId = $acceptorId;
@@ -164,6 +177,7 @@ class GameChallengeController extends Controller
 
             $initialTimeMs = $gameMode->initial_time_seconds * 1000;
             $gameCode = 'gm_' . Str::lower(Str::random(8));
+            $now = now();
 
             // Crear la partida oficial
             $createdGame = Game::create([
@@ -181,8 +195,8 @@ class GameChallengeController extends Controller
                 'move_count' => 0,
                 'white_time_left_ms' => $initialTimeMs,
                 'black_time_left_ms' => $initialTimeMs,
-                'last_move_at' => null, // El reloj comienza al hacer el primer movimiento
-                'started_at' => now(),
+                'last_move_at' => $now,
+                'started_at' => $now,
                 'status' => 1,
             ]);
 

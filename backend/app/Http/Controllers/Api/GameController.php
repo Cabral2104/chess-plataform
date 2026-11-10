@@ -24,10 +24,11 @@ class GameController extends Controller
 
     /**
      * Listar partidas activas en curso para espectadores (Chess TV / Observar en vivo).
+     * Limpia automáticamente las partidas cuyo reloj ya expiró o que fueron abandonadas.
      */
     public function activeGames(): JsonResponse
     {
-        $games = Game::with([
+        $candidates = Game::with([
             'whitePlayer:id,name,username,avatar_url,presence_status',
             'whitePlayer.ratings',
             'blackPlayer:id,name,username,avatar_url,presence_status',
@@ -36,11 +37,19 @@ class GameController extends Controller
         ])
         ->where('game_status', 'in_progress')
         ->orderBy('started_at', 'desc')
-        ->limit(15)
+        ->limit(30)
         ->get();
 
+        $activeGames = [];
+        foreach ($candidates as $game) {
+            $this->syncAndExpireGameStatus($game);
+            if ($game->game_status === 'in_progress') {
+                $activeGames[] = $game;
+            }
+        }
+
         return response()->json([
-            'games' => $games,
+            'games' => array_slice($activeGames, 0, 15),
         ]);
     }
 
@@ -61,26 +70,11 @@ class GameController extends Controller
         ->where('code', $code)
         ->firstOrFail();
 
-        // Cálculo dinámico de reloj en tiempo real
-        $dynamicWhiteTime = $game->white_time_left_ms;
-        $dynamicBlackTime = $game->black_time_left_ms;
-
-        if ($game->game_status === 'in_progress' && $game->last_move_at) {
-            $elapsedMs = (int) now()->diffInMilliseconds($game->last_move_at);
-
-            if ($game->current_turn === 'w') {
-                $dynamicWhiteTime = max(0, $game->white_time_left_ms - $elapsedMs);
-            } else {
-                $dynamicBlackTime = max(0, $game->black_time_left_ms - $elapsedMs);
-            }
-        }
+        $dynamicClocks = $this->syncAndExpireGameStatus($game);
 
         return response()->json([
             'game' => $game,
-            'dynamic_clocks' => [
-                'white_time_left_ms' => $dynamicWhiteTime,
-                'black_time_left_ms' => $dynamicBlackTime,
-            ],
+            'dynamic_clocks' => $dynamicClocks,
         ]);
     }
 
@@ -103,17 +97,21 @@ class GameController extends Controller
         ]);
 
         $user = $request->user();
-        $game = Game::where('code', $code)->firstOrFail();
+        $game = Game::with('gameMode')->where('code', $code)->firstOrFail();
+
+        // Verificar primero si la partida ya expiró por tiempo
+        $this->syncAndExpireGameStatus($game);
 
         // 1. Validaciones de estado y turno
         if ($game->game_status !== 'in_progress') {
             return response()->json([
-                'message' => 'La partida no está activa.',
+                'message' => 'La partida ya ha finalizado.',
+                'game' => $game->fresh(['whitePlayer.ratings', 'blackPlayer.ratings', 'gameMode']),
             ], 400);
         }
 
-        $isWhite = ($user->id === $game->white_player_id);
-        $isBlack = ($user->id === $game->black_player_id);
+        $isWhite = ((int) $user->id === (int) $game->white_player_id);
+        $isBlack = ((int) $user->id === (int) $game->black_player_id);
 
         if (!$isWhite && !$isBlack) {
             return response()->json([
@@ -130,33 +128,34 @@ class GameController extends Controller
 
         $now = now();
         $gameMode = $game->gameMode;
-        $incrementMs = $gameMode->increment_seconds * 1000;
+        $initialTimeMs = ($gameMode ? $gameMode->initial_time_seconds : 180) * 1000;
+        $incrementMs = ($gameMode ? $gameMode->increment_seconds : 0) * 1000;
 
-        // 2. Cálculo atómico del reloj
+        // 2. Cálculo atómico del reloj (siempre resta el tiempo pensado en milisegundos positivos)
+        $whiteTime = min($initialTimeMs, max(0, (int) $game->white_time_left_ms));
+        $blackTime = min($initialTimeMs, max(0, (int) $game->black_time_left_ms));
+        $referenceTime = $game->last_move_at ?? $game->started_at;
         $elapsedMs = 0;
-        $whiteTime = $game->white_time_left_ms;
-        $blackTime = $game->black_time_left_ms;
 
-        if ($game->last_move_at !== null) {
-            $elapsedMs = (int) $now->diffInMilliseconds($game->last_move_at);
+        if ($referenceTime !== null) {
+            $elapsedMs = max(0, (int) round($now->getTimestampMs() - $referenceTime->getTimestampMs()));
 
             if ($expectedTurn === 'w') {
                 $whiteTime -= $elapsedMs;
                 if ($whiteTime <= 0) {
-                    return $this->handleTimeout($game, $game->black_player_id);
+                    return $this->handleTimeout($game, (int) $game->black_player_id, 0, $blackTime);
                 }
-                $whiteTime += $incrementMs;
+                if ($game->last_move_at !== null && $incrementMs > 0) {
+                    $whiteTime = min($initialTimeMs, $whiteTime + $incrementMs);
+                }
             } else {
                 $blackTime -= $elapsedMs;
                 if ($blackTime <= 0) {
-                    return $this->handleTimeout($game, $game->white_player_id);
+                    return $this->handleTimeout($game, (int) $game->white_player_id, $whiteTime, 0);
                 }
-                $blackTime += $incrementMs;
-            }
-        } else {
-            // Primer movimiento de la partida: se suma incremento si aplica
-            if ($expectedTurn === 'w') {
-                $whiteTime += $incrementMs;
+                if ($incrementMs > 0) {
+                    $blackTime = min($initialTimeMs, $blackTime + $incrementMs);
+                }
             }
         }
 
@@ -193,6 +192,11 @@ class GameController extends Controller
             // Siguiente turno
             $nextTurn = ($expectedTurn === 'w') ? 'b' : 'w';
 
+            // Si quien mueve NO es quien ofreció tablas, su jugada rechaza implícitamente la oferta
+            $nextDrawOfferedBy = ($game->draw_offered_by && (int) $game->draw_offered_by === (int) $user->id)
+                ? $game->draw_offered_by
+                : null;
+
             $game->update([
                 'fen' => $validated['fen'],
                 'pgn' => $newPgn,
@@ -201,7 +205,7 @@ class GameController extends Controller
                 'white_time_left_ms' => $whiteTime,
                 'black_time_left_ms' => $blackTime,
                 'last_move_at' => $now,
-                'draw_offered_by' => null, // El movimiento anula cualquier oferta de tablas pendiente
+                'draw_offered_by' => $nextDrawOfferedBy,
             ]);
 
             // Verificar Jaque Mate / Tablas declaradas por la jugada
@@ -217,6 +221,10 @@ class GameController extends Controller
                     'ended_at' => $now,
                 ]);
                 $ratingChanges = $this->eloService->updateRatings($game);
+                $game->update([
+                    'white_rating_change' => $ratingChanges['white_change'],
+                    'black_rating_change' => $ratingChanges['black_change'],
+                ]);
                 $this->resetUsersPresence($game);
             } elseif (!empty($validated['is_stalemate']) || !empty($validated['is_draw'])) {
                 $isGameOver = true;
@@ -228,6 +236,10 @@ class GameController extends Controller
                     'ended_at' => $now,
                 ]);
                 $ratingChanges = $this->eloService->updateRatings($game);
+                $game->update([
+                    'white_rating_change' => $ratingChanges['white_change'],
+                    'black_rating_change' => $ratingChanges['black_change'],
+                ]);
                 $this->resetUsersPresence($game);
             }
 
@@ -262,7 +274,8 @@ class GameController extends Controller
         return response()->json([
             'message' => 'Movimiento procesado.',
             'move' => $result['move'],
-            'game' => $game->fresh(['whitePlayer', 'blackPlayer', 'gameMode']),
+            'game' => $game->fresh(['whitePlayer.ratings', 'blackPlayer.ratings', 'gameMode']),
+            'rating_changes' => $result['rating_changes'],
         ]);
     }
 
@@ -272,24 +285,37 @@ class GameController extends Controller
     public function resign(Request $request, string $code): JsonResponse
     {
         $user = $request->user();
-        $game = Game::where('code', $code)->firstOrFail();
+        $game = Game::with('gameMode')->where('code', $code)->firstOrFail();
 
         if ($game->game_status !== 'in_progress') {
-            return response()->json(['message' => 'La partida ya no está activa.'], 400);
+            return response()->json([
+                'message' => 'La partida ya ha finalizado.',
+                'game' => $game->fresh(['whitePlayer.ratings', 'blackPlayer.ratings', 'gameMode']),
+            ]);
         }
 
-        $winnerId = ($user->id === $game->white_player_id) 
-            ? $game->black_player_id 
-            : $game->white_player_id;
+        $isWhite = ((int) $user->id === (int) $game->white_player_id);
+        $isBlack = ((int) $user->id === (int) $game->black_player_id);
+
+        if (!$isWhite && !$isBlack) {
+            return response()->json(['message' => 'No eres un jugador de esta partida.'], 403);
+        }
+
+        $winnerId = $isWhite ? (int) $game->black_player_id : (int) $game->white_player_id;
 
         $game->update([
             'game_status' => 'completed',
             'end_reason' => 'resignation',
             'winner_id' => $winnerId,
             'ended_at' => now(),
+            'draw_offered_by' => null,
         ]);
 
         $ratingChanges = $this->eloService->updateRatings($game);
+        $game->update([
+            'white_rating_change' => $ratingChanges['white_change'],
+            'black_rating_change' => $ratingChanges['black_change'],
+        ]);
         $this->resetUsersPresence($game);
 
         $this->safeBroadcast(new GameOverEvent(
@@ -302,24 +328,44 @@ class GameController extends Controller
 
         return response()->json([
             'message' => 'Has abandonado la partida.',
-            'game' => $game->fresh(['whitePlayer', 'blackPlayer']),
+            'game' => $game->fresh(['whitePlayer.ratings', 'blackPlayer.ratings', 'gameMode']),
+            'rating_changes' => $ratingChanges,
         ]);
     }
 
     /**
-     * Ofrecer o aceptar tablas.
+     * Ofrecer, aceptar o rechazar tablas.
      */
     public function drawOffer(Request $request, string $code): JsonResponse
     {
         $user = $request->user();
-        $game = Game::where('code', $code)->firstOrFail();
+        $game = Game::with('gameMode')->where('code', $code)->firstOrFail();
 
         if ($game->game_status !== 'in_progress') {
-            return response()->json(['message' => 'La partida no está activa.'], 400);
+            return response()->json([
+                'message' => 'La partida ya ha finalizado.',
+                'game' => $game->fresh(['whitePlayer.ratings', 'blackPlayer.ratings', 'gameMode']),
+            ]);
+        }
+
+        $isWhite = ((int) $user->id === (int) $game->white_player_id);
+        $isBlack = ((int) $user->id === (int) $game->black_player_id);
+
+        if (!$isWhite && !$isBlack) {
+            return response()->json(['message' => 'No eres un jugador de esta partida.'], 403);
+        }
+
+        // Si el jugador rechaza explícitamente la oferta de tablas
+        if ($request->boolean('reject')) {
+            $game->update(['draw_offered_by' => null]);
+            return response()->json([
+                'message' => 'Oferta de tablas rechazada.',
+                'game' => $game->fresh(['whitePlayer.ratings', 'blackPlayer.ratings', 'gameMode']),
+            ]);
         }
 
         // Si el oponente ya había ofrecido tablas, se aceptan de inmediato
-        if ($game->draw_offered_by && $game->draw_offered_by !== $user->id) {
+        if ($game->draw_offered_by && (int) $game->draw_offered_by !== (int) $user->id) {
             $game->update([
                 'game_status' => 'completed',
                 'end_reason' => 'draw_agreed',
@@ -329,6 +375,10 @@ class GameController extends Controller
             ]);
 
             $ratingChanges = $this->eloService->updateRatings($game);
+            $game->update([
+                'white_rating_change' => $ratingChanges['white_change'],
+                'black_rating_change' => $ratingChanges['black_change'],
+            ]);
             $this->resetUsersPresence($game);
 
             $this->safeBroadcast(new GameOverEvent(
@@ -341,7 +391,8 @@ class GameController extends Controller
 
             return response()->json([
                 'message' => 'Tablas acordadas mutuamente.',
-                'game' => $game->fresh(),
+                'game' => $game->fresh(['whitePlayer.ratings', 'blackPlayer.ratings', 'gameMode']),
+                'rating_changes' => $ratingChanges,
             ]);
         }
 
@@ -352,6 +403,7 @@ class GameController extends Controller
 
         return response()->json([
             'message' => 'Propuesta de tablas enviada a tu oponente.',
+            'game' => $game->fresh(['whitePlayer.ratings', 'blackPlayer.ratings', 'gameMode']),
         ]);
     }
 
@@ -384,18 +436,81 @@ class GameController extends Controller
     }
 
     /**
-     * Manejar la finalización de partida por caída de bandera (tiempo agotado).
+     * Sincroniza los relojes dinámicos de una partida y la cierra automáticamente
+     * si el tiempo de alguno de los jugadores llegó a 0 (evita partidas zombi).
+     *
+     * @return array{white_time_left_ms: int, black_time_left_ms: int}
      */
-    private function handleTimeout(Game $game, int $winnerId): JsonResponse
+    private function syncAndExpireGameStatus(Game $game): array
+    {
+        $now = now();
+        $gameMode = $game->gameMode;
+        $initialTimeMs = ($gameMode ? $gameMode->initial_time_seconds : 180) * 1000;
+
+        // Sanear valores de reloj heredados por encima del tiempo inicial
+        $baseWhiteMs = min($initialTimeMs, max(0, (int) $game->white_time_left_ms));
+        $baseBlackMs = min($initialTimeMs, max(0, (int) $game->black_time_left_ms));
+
+        if ($baseWhiteMs !== (int) $game->white_time_left_ms || $baseBlackMs !== (int) $game->black_time_left_ms) {
+            $game->update([
+                'white_time_left_ms' => $baseWhiteMs,
+                'black_time_left_ms' => $baseBlackMs,
+            ]);
+        }
+
+        $dynamicWhiteTime = $baseWhiteMs;
+        $dynamicBlackTime = $baseBlackMs;
+
+        if ($game->game_status !== 'in_progress') {
+            return [
+                'white_time_left_ms' => $dynamicWhiteTime,
+                'black_time_left_ms' => $dynamicBlackTime,
+            ];
+        }
+
+        $referenceTime = $game->last_move_at ?? $game->started_at;
+        if ($referenceTime !== null) {
+            $elapsedMs = max(0, (int) round($now->getTimestampMs() - $referenceTime->getTimestampMs()));
+
+            if ($game->current_turn === 'w') {
+                $dynamicWhiteTime = max(0, $baseWhiteMs - $elapsedMs);
+                if ($dynamicWhiteTime <= 0) {
+                    $this->finalizeTimeoutGame($game, (int) $game->black_player_id, 0, $baseBlackMs);
+                }
+            } else {
+                $dynamicBlackTime = max(0, $baseBlackMs - $elapsedMs);
+                if ($dynamicBlackTime <= 0) {
+                    $this->finalizeTimeoutGame($game, (int) $game->white_player_id, $baseWhiteMs, 0);
+                }
+            }
+        }
+
+        return [
+            'white_time_left_ms' => $dynamicWhiteTime,
+            'black_time_left_ms' => $dynamicBlackTime,
+        ];
+    }
+
+    /**
+     * Cierra silenciosamente una partida cuyo reloj llegó a 0 y actualiza el Elo.
+     */
+    private function finalizeTimeoutGame(Game $game, int $winnerId, int $whiteTimeMs, int $blackTimeMs): array
     {
         $game->update([
             'game_status' => 'completed',
             'end_reason' => 'timeout',
             'winner_id' => $winnerId,
+            'white_time_left_ms' => $whiteTimeMs,
+            'black_time_left_ms' => $blackTimeMs,
             'ended_at' => now(),
+            'draw_offered_by' => null,
         ]);
 
         $ratingChanges = $this->eloService->updateRatings($game);
+        $game->update([
+            'white_rating_change' => $ratingChanges['white_change'],
+            'black_rating_change' => $ratingChanges['black_change'],
+        ]);
         $this->resetUsersPresence($game);
 
         $this->safeBroadcast(new GameOverEvent(
@@ -406,9 +521,20 @@ class GameController extends Controller
             $ratingChanges['black_change']
         ));
 
+        return $ratingChanges;
+    }
+
+    /**
+     * Manejar la finalización de partida por caída de bandera al intentar mover.
+     */
+    private function handleTimeout(Game $game, int $winnerId, int $whiteTimeMs = 0, int $blackTimeMs = 0): JsonResponse
+    {
+        $ratingChanges = $this->finalizeTimeoutGame($game, $winnerId, $whiteTimeMs, $blackTimeMs);
+
         return response()->json([
             'message' => 'Tiempo agotado. Partida finalizada.',
-            'game' => $game->fresh(['whitePlayer', 'blackPlayer']),
+            'game' => $game->fresh(['whitePlayer.ratings', 'blackPlayer.ratings', 'gameMode']),
+            'rating_changes' => $ratingChanges,
         ], 400);
     }
 

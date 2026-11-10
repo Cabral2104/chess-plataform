@@ -19,135 +19,110 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink, IconComponent],
   template: `
-    <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
-      <div class="w-full max-w-lg bg-[#1c1b18] border border-[#2d2a26] rounded-2xl shadow-2xl p-6 sm:p-8 fade-in relative overflow-hidden">
-        
-        <!-- Detalle decorativo superior sutil -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#c5a059] to-transparent opacity-40"></div>
+    <div class="min-h-dvh lg:min-h-screen grid lg:grid-cols-2">
 
-        <!-- Encabezado de Torneo -->
-        <div class="text-center mb-6">
-          <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-b from-[#292723] to-[#1e1d1a] border border-[#3d3a33] flex items-center justify-center text-[#c5a059] shadow-inner">
-            <app-icon name="user" class="w-6 h-6 text-[#c5a059]"></app-icon>
-          </div>
-          <h1 class="text-2xl font-bold text-slate-100 tracking-tight">Registro de Jugador Oficial</h1>
-          <p class="text-xs text-slate-400 mt-1">Comienza tu trayectoria competitiva con 1200 puntos Elo FIDE</p>
+      <div class="hidden lg:flex flex-col justify-between p-12 bg-[#0d1124] border-r border-[#232b4d] relative overflow-hidden">
+        <div class="eyebrow">Chess Arena &middot; online</div>
+        <div class="relative z-10">
+          <h1 class="font-display text-6xl xl:text-7xl font-extrabold text-white leading-[0.98]">
+            Tu camino<br>empieza<br><span class="text-[#f4b942]">aquí.</span>
+          </h1>
+          <p class="text-slate-400 mt-6 max-w-sm">Crea tu cuenta y arranca con 1200 puntos Elo. Sube en el ranking partida a partida.</p>
         </div>
+        <div class="grid grid-cols-8 w-72 rotate-[8deg] opacity-80 absolute -right-10 -bottom-10">
+          @for (i of board; track $index) {
+            <div class="aspect-square" [class.bg-[#2bb5a0]]="i % 2 === 0" [class.bg-[#e4efe9]]="i % 2 === 1"></div>
+          }
+        </div>
+        <div class="eyebrow relative z-10">1200 Elo inicial</div>
+      </div>
 
-        <!-- Alerta de Error -->
-        @if (errorMessage()) {
-          <div class="mb-5 p-3 rounded-xl bg-red-950/40 border border-red-800/60 text-red-200 text-xs flex items-center gap-2.5">
-            <app-icon name="shield" class="w-4 h-4 text-red-400 flex-shrink-0"></app-icon>
-            <span>{{ errorMessage() }}</span>
+      <div class="flex items-center justify-center p-5 sm:p-10">
+        <div class="w-full max-w-md fade-in">
+          <div class="lg:hidden flex items-center gap-2.5 mb-8">
+            <div class="w-9 h-9 rounded-xl bg-[#2bb5a0] text-[#04141a] flex items-center justify-center"><app-icon name="crown" class="w-5 h-5"></app-icon></div>
+            <span class="font-display text-xl font-extrabold text-white">Chess<span class="text-[#45d4be]">Arena</span></span>
           </div>
-        }
 
-        <!-- Formulario de Registro -->
-        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-4">
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Nombre Completo -->
+          <div class="eyebrow mb-2">Registro</div>
+          <h2 class="font-display text-4xl font-extrabold text-white">Crea tu cuenta</h2>
+          <p class="text-sm text-slate-400 mt-2 mb-7">Solo toma un minuto.</p>
+
+          @if (errorMessage()) {
+            <div class="mb-5 p-3 rounded-xl bg-red-950/50 border border-red-800/60 text-red-200 text-xs flex items-center gap-2.5">
+              <app-icon name="shield" class="w-4 h-4 text-red-400 shrink-0"></app-icon>
+              <span>{{ errorMessage() }}</span>
+            </div>
+          }
+
+          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="field-label">Nombre completo</label>
+                <input type="text" formControlName="name" placeholder="Carlos Mendoza" class="field">
+                @if (registerForm.get('name')?.touched && registerForm.get('name')?.invalid) {
+                  <span class="text-[11px] text-red-400 mt-1 block">Tu nombre es requerido</span>
+                }
+              </div>
+              <div>
+                <label class="field-label">Usuario</label>
+                <input type="text" formControlName="username" placeholder="gran_maestro" class="field">
+                @if (registerForm.get('username')?.touched && registerForm.get('username')?.invalid) {
+                  <span class="text-[11px] text-red-400 mt-1 block">Mínimo 3 caracteres alfanuméricos</span>
+                }
+              </div>
+            </div>
+
             <div>
-              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Nombre Completo
-              </label>
-              <input type="text" 
-                     formControlName="name"
-                     placeholder="ej. Carlos Mendoza"
-                     class="w-full bg-[#141311] border border-[#302e2a] rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#c5a059] transition-all">
-              @if (registerForm.get('name')?.touched && registerForm.get('name')?.invalid) {
-                <span class="text-[11px] text-red-400 mt-1 block">Tu nombre es requerido</span>
+              <label class="field-label">Correo electrónico</label>
+              <input type="email" formControlName="email" placeholder="tu@correo.com" class="field">
+              @if (registerForm.get('email')?.touched && registerForm.get('email')?.invalid) {
+                <span class="text-[11px] text-red-400 mt-1 block">Ingresa un correo válido</span>
               }
             </div>
 
-            <!-- Nombre de Usuario -->
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Nombre de Usuario
-              </label>
-              <input type="text" 
-                     formControlName="username"
-                     placeholder="ej. gran_maestro"
-                     class="w-full bg-[#141311] border border-[#302e2a] rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#c5a059] transition-all">
-              @if (registerForm.get('username')?.touched && registerForm.get('username')?.invalid) {
-                <span class="text-[11px] text-red-400 mt-1 block">Mínimo 3 caracteres alfanuméricos</span>
-              }
-            </div>
-          </div>
-
-          <!-- Correo Electrónico -->
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Correo Electrónico
-            </label>
-            <input type="email" 
-                   formControlName="email"
-                   placeholder="tu@correo.com"
-                   class="w-full bg-[#141311] border border-[#302e2a] rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#c5a059] transition-all">
-            @if (registerForm.get('email')?.touched && registerForm.get('email')?.invalid) {
-              <span class="text-[11px] text-red-400 mt-1 block">Ingresa un correo electrónico válido</span>
-            }
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Contraseña -->
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Contraseña
-              </label>
-              <input type="password" 
-                     formControlName="password"
-                     placeholder="Mínimo 8 caracteres"
-                     class="w-full bg-[#141311] border border-[#302e2a] rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#c5a059] transition-all">
-              @if (registerForm.get('password')?.touched && registerForm.get('password')?.invalid) {
-                <span class="text-[11px] text-red-400 mt-1 block">Mínimo 8 caracteres</span>
-              }
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="field-label">Contraseña</label>
+                <input type="password" formControlName="password" placeholder="Mínimo 8 caracteres" class="field">
+                @if (registerForm.get('password')?.touched && registerForm.get('password')?.invalid) {
+                  <span class="text-[11px] text-red-400 mt-1 block">Mínimo 8 caracteres</span>
+                }
+              </div>
+              <div>
+                <label class="field-label">Confirmar</label>
+                <input type="password" formControlName="password_confirmation" placeholder="Repite tu contraseña" class="field">
+                @if (registerForm.hasError('passwordMismatch') && registerForm.get('password_confirmation')?.touched) {
+                  <span class="text-[11px] text-red-400 mt-1 block">Las contraseñas no coinciden</span>
+                }
+              </div>
             </div>
 
-            <!-- Confirmar Contraseña -->
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                Confirmar Contraseña
-              </label>
-              <input type="password" 
-                     formControlName="password_confirmation"
-                     placeholder="Repite tu contraseña"
-                     class="w-full bg-[#141311] border border-[#302e2a] rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#c5a059] transition-all">
-              @if (registerForm.hasError('passwordMismatch') && registerForm.get('password_confirmation')?.touched) {
-                <span class="text-[11px] text-red-400 mt-1 block">Las contraseñas no coinciden</span>
+            <button type="submit" [disabled]="registerForm.invalid || isSubmitting()" class="btn btn-primary w-full !py-3.5 mt-2">
+              @if (isSubmitting()) {
+                <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Creando cuenta...</span>
+              } @else {
+                <span>Completar registro</span>
               }
-            </div>
-          </div>
+            </button>
+          </form>
 
-          <!-- Botón de Registro -->
-          <button type="submit" 
-                  [disabled]="registerForm.invalid || isSubmitting()"
-                  class="w-full mt-4 py-3 px-4 rounded-xl bg-[#779952] hover:bg-[#86aa5d] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 transform active:scale-98">
-            @if (isSubmitting()) {
-              <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-              </svg>
-              <span>Creando cuenta oficial...</span>
-            } @else {
-              <span>Completar Registro</span>
-            }
-          </button>
-        </form>
-
-        <!-- Enlace a Login -->
-        <p class="text-center text-xs text-slate-400 mt-6">
-          ¿Ya tienes cuenta?
-          <a routerLink="/login" class="text-[#c5a059] hover:underline font-semibold ml-1">
-            Inicia sesión aquí
-          </a>
-        </p>
-
+          <p class="text-center text-sm text-slate-400 mt-7">
+            ¿Ya tienes cuenta?
+            <a routerLink="/login" class="text-[#45d4be] font-bold hover:underline ml-1">Inicia sesión</a>
+          </p>
+        </div>
       </div>
     </div>
   `
 })
 export class RegisterComponent {
+  board = Array.from({ length: 64 }, (_, i) => (Math.floor(i / 8) + i) % 2);
+
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);

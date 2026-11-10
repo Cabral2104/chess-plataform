@@ -100,15 +100,31 @@ export class GameService {
   /**
    * Rendirse en una partida activa.
    */
-  resign(code: string): Observable<{ message: string; game: Game }> {
-    return this.http.post<{ message: string; game: Game }>(`${this.apiUrl}/games/${code}/resign`, {});
+  resign(code: string): Observable<{
+    message: string;
+    game: Game;
+    rating_changes?: { white_change: number; black_change: number };
+  }> {
+    return this.http.post<{
+      message: string;
+      game: Game;
+      rating_changes?: { white_change: number; black_change: number };
+    }>(`${this.apiUrl}/games/${code}/resign`, {});
   }
 
   /**
-   * Proponer o aceptar tablas.
+   * Proponer, aceptar o rechazar tablas.
    */
-  offerDraw(code: string): Observable<{ message: string; game?: Game }> {
-    return this.http.post<{ message: string; game?: Game }>(`${this.apiUrl}/games/${code}/draw-offer`, {});
+  offerDraw(code: string, options?: { reject?: boolean }): Observable<{
+    message: string;
+    game?: Game;
+    rating_changes?: { white_change: number; black_change: number };
+  }> {
+    return this.http.post<{
+      message: string;
+      game?: Game;
+      rating_changes?: { white_change: number; black_change: number };
+    }>(`${this.apiUrl}/games/${code}/draw-offer`, options || {});
   }
 
   /**
@@ -116,6 +132,13 @@ export class GameService {
    */
   sendChatMessage(code: string, message: string): Observable<{ message: string; chat: GameChatMessage }> {
     return this.http.post<{ message: string; chat: GameChatMessage }>(`${this.apiUrl}/games/${code}/chat`, { message });
+  }
+
+  /**
+   * Obtener el historial oficial de partidas finalizadas de un jugador.
+   */
+  getUserHistory(username: string): Observable<{ games: Game[] }> {
+    return this.http.get<{ games: Game[] }>(`${this.apiUrl}/users/${username}/history`);
   }
 }
 

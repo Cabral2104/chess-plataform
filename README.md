@@ -78,26 +78,27 @@ npm install
 
 Para probar la plataforma en vivo necesitas tres terminales activas:
 
-### Terminal 1: Servidor API REST (Backend)
+### Terminal 1: Servidor API REST (Backend - accesible en red local Wi-Fi/LAN)
 ```bash
 cd backend
-php artisan serve --port=8000
+php artisan serve --host=0.0.0.0 --port=8000
 ```
-*Disponible en: `http://127.0.0.1:8000`*
+*Disponible en: `http://localhost:8000` y en `http://<TU_IP_LOCAL>:8000`*
 
-### Terminal 2: Servidor WebSockets (Laravel Reverb)
-```bash
-cd backend
-php artisan reverb:start --port=8085 --debug
-```
-*Escuchando en: `127.0.0.1:8085`*
-
-### Terminal 3: Servidor de Desarrollo (Angular Frontend)
+### Terminal 2: Servidor de Desarrollo (Angular Frontend - accesible en red local Wi-Fi/LAN)
 ```bash
 cd frontend
 npm start
 ```
-*Disponible en: `http://localhost:4200`*
+*(Ejecuta `ng serve --host 0.0.0.0` automáticamente)*
+*Disponible en: `http://localhost:4200` y desde cualquier celular/laptop en la misma red Wi-Fi entrando a `http://<TU_IP_LOCAL>:4200`*
+
+### Terminal 3 (Opcional): Servidor WebSockets (Laravel Reverb)
+> **Nota:** La aplicación cuenta con sincronización reactiva automática por HTTP cada 2 segundos, por lo que funciona al 100% sin necesidad de encender Reverb. Si deseas habilitar además el canal WebSocket puro:
+```bash
+cd backend
+php artisan reverb:start --host=0.0.0.0 --port=8085
+```
 
 ---
 

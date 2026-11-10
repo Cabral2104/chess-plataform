@@ -10,130 +10,108 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink, IconComponent],
   template: `
-    <div class="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
-      <div class="w-full max-w-md bg-[#1c1b18] border border-[#2d2a26] rounded-2xl shadow-2xl p-6 sm:p-8 fade-in relative overflow-hidden">
-        
-        <!-- Detalle decorativo superior sutil -->
-        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#c5a059] to-transparent opacity-40"></div>
+    <div class="min-h-dvh lg:min-h-screen grid lg:grid-cols-2">
 
-        <!-- Encabezado de Torneo -->
-        <div class="text-center mb-6">
-          <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-b from-[#292723] to-[#1e1d1a] border border-[#3d3a33] flex items-center justify-center text-[#c5a059] shadow-inner">
-            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 22H5v-2h14v2M17.15 7.62c-.32-.23-.74-.3-1.12-.17l-.87.3c-.34.12-.72.04-.98-.21L13 6.4V4c0-1.1-.9-2-2-2h-.5c-.28 0-.5.22-.5.5v1.65l-2.07 2.08c-.46.46-.77 1.05-.88 1.69l-.65 3.86c-.05.28.04.56.24.75.2.19.48.27.75.22l2.11-.35v3.1c0 .83.67 1.5 1.5 1.5h4c.83 0 1.5-.67 1.5-1.5v-2.38l1.45-1.45c.42-.42.66-.99.66-1.58v-4.5c0-.62-.26-1.22-.76-1.63z"/>
-            </svg>
-          </div>
-          <h1 class="text-2xl font-bold text-slate-100 tracking-tight">Acceso a la Arena</h1>
-          <p class="text-xs text-slate-400 mt-1">Ingresa tus credenciales oficiales de jugador</p>
+      <!-- Panel de marca -->
+      <div class="hidden lg:flex flex-col justify-between p-12 bg-[#0d1124] border-r border-[#232b4d] relative overflow-hidden">
+        <div class="eyebrow">Chess Arena &middot; online</div>
+        <div class="relative z-10">
+          <h1 class="font-display text-6xl xl:text-7xl font-extrabold text-white leading-[0.98]">
+            Cada jugada<br>cuenta.<br><span class="text-[#45d4be]">Juega.</span>
+          </h1>
+          <p class="text-slate-400 mt-6 max-w-sm">Partidas en tiempo real, ranking Elo y salas privadas para jugar con amigos.</p>
         </div>
+        <div class="grid grid-cols-8 w-72 rotate-[-8deg] opacity-80 absolute -right-10 -bottom-10">
+          @for (i of board; track $index) {
+            <div class="aspect-square" [class.bg-[#2bb5a0]]="i % 2 === 0" [class.bg-[#e4efe9]]="i % 2 === 1"></div>
+          }
+        </div>
+        <div class="eyebrow relative z-10">Elo FIDE &middot; K=32</div>
+      </div>
 
-        <!-- Alerta de Error -->
-        @if (errorMessage()) {
-          <div class="mb-5 p-3 rounded-xl bg-red-950/40 border border-red-800/60 text-red-200 text-xs flex items-center gap-2.5">
-            <app-icon name="shield" class="w-4 h-4 text-red-400 flex-shrink-0"></app-icon>
-            <span>{{ errorMessage() }}</span>
+      <!-- Formulario -->
+      <div class="flex items-center justify-center p-5 sm:p-10">
+        <div class="w-full max-w-md fade-in">
+          <div class="lg:hidden flex items-center gap-2.5 mb-8">
+            <div class="w-9 h-9 rounded-xl bg-[#2bb5a0] text-[#04141a] flex items-center justify-center"><app-icon name="crown" class="w-5 h-5"></app-icon></div>
+            <span class="font-display text-xl font-extrabold text-white">Chess<span class="text-[#45d4be]">Arena</span></span>
           </div>
-        }
 
-        <!-- Formulario -->
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
-          
-          <!-- Campo Usuario / Email -->
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Correo o Nombre de Usuario
-            </label>
-            <div class="relative">
-              <input type="text" 
-                     formControlName="login"
-                     placeholder="ej. jugador1 o tu@correo.com"
-                     class="w-full bg-[#141311] border border-[#302e2a] rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#c5a059] transition-all">
+          <div class="eyebrow mb-2">Acceso</div>
+          <h2 class="font-display text-4xl font-extrabold text-white">Bienvenido de vuelta</h2>
+          <p class="text-sm text-slate-400 mt-2 mb-7">Ingresa tus credenciales para entrar a la arena.</p>
+
+          @if (errorMessage()) {
+            <div class="mb-5 p-3 rounded-xl bg-red-950/50 border border-red-800/60 text-red-200 text-xs flex items-center gap-2.5">
+              <app-icon name="shield" class="w-4 h-4 text-red-400 shrink-0"></app-icon>
+              <span>{{ errorMessage() }}</span>
             </div>
-            @if (loginForm.get('login')?.touched && loginForm.get('login')?.invalid) {
-              <span class="text-[11px] text-red-400 mt-1 block">Este campo es requerido</span>
-            }
-          </div>
+          }
 
-          <!-- Campo Contraseña -->
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-              Contraseña
-            </label>
-            <div class="relative">
-              <input [type]="showPassword() ? 'text' : 'password'" 
-                     formControlName="password"
-                     placeholder="••••••••"
-                     class="w-full bg-[#141311] border border-[#302e2a] rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-[#c5a059] transition-all pr-10">
-              <button type="button" 
-                      (click)="toggleShowPassword()" 
-                      class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-200 focus:outline-none">
-                @if (showPassword()) {
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                  </svg>
-                } @else {
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                }
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-4">
+            <div>
+              <label class="field-label">Correo o usuario</label>
+              <input type="text" formControlName="login" placeholder="jugador1 o tu@correo.com" class="field" autocomplete="username">
+              @if (loginForm.get('login')?.touched && loginForm.get('login')?.invalid) {
+                <span class="text-[11px] text-red-400 mt-1 block">Este campo es requerido</span>
+              }
+            </div>
+
+            <div>
+              <label class="field-label">Contraseña</label>
+              <div class="relative">
+                <input [type]="showPassword() ? 'text' : 'password'" formControlName="password" placeholder="••••••••" class="field pr-11" autocomplete="current-password">
+                <button type="button" (click)="toggleShowPassword()" aria-label="Mostrar contraseña"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                  @if (showPassword()) {
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"/></svg>
+                  } @else {
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  }
+                </button>
+              </div>
+              @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+                <span class="text-[11px] text-red-400 mt-1 block">Ingresa tu contraseña</span>
+              }
+            </div>
+
+            <button type="submit" [disabled]="loginForm.invalid || isSubmitting()" class="btn btn-primary w-full !py-3.5 mt-2">
+              @if (isSubmitting()) {
+                <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Verificando...</span>
+              } @else {
+                <span>Entrar</span>
+              }
+            </button>
+          </form>
+
+          <div class="mt-7 pt-6 border-t border-[#232b4d]">
+            <div class="eyebrow mb-3 text-center">Perfiles de prueba</div>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" (click)="fillCredentials('jugador1', 'password123')" class="btn btn-ghost !py-2.5 !text-xs">
+                <app-icon name="user" class="w-4 h-4 text-[#f4b942]"></app-icon>Jugador 1
+              </button>
+              <button type="button" (click)="fillCredentials('jugador2', 'password123')" class="btn btn-ghost !py-2.5 !text-xs">
+                <app-icon name="user" class="w-4 h-4 text-[#8b7cf6]"></app-icon>Jugador 2
               </button>
             </div>
-            @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
-              <span class="text-[11px] text-red-400 mt-1 block">Ingresa tu contraseña</span>
-            }
           </div>
 
-          <!-- Botón de Envío -->
-          <button type="submit" 
-                  [disabled]="loginForm.invalid || isSubmitting()"
-                  class="w-full mt-2 py-3 px-4 rounded-xl bg-[#779952] hover:bg-[#86aa5d] disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 transform active:scale-98">
-            @if (isSubmitting()) {
-              <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-              </svg>
-              <span>Verificando credenciales...</span>
-            } @else {
-              <span>Entrar a la Plataforma</span>
-            }
-          </button>
-        </form>
-
-        <!-- Accesos Rápidos para Evaluación (Sin Emojis) -->
-        <div class="mt-6 pt-5 border-t border-[#292724]">
-          <span class="block text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2.5 text-center">
-            Perfiles de Prueba
-          </span>
-          <div class="grid grid-cols-2 gap-2">
-            <button type="button" 
-                    (click)="fillCredentials('jugador1', 'password123')"
-                    class="py-2 px-3 bg-[#22201d] hover:bg-[#2b2824] border border-[#33302b] rounded-lg text-xs font-semibold text-slate-200 transition-all flex items-center justify-center gap-2">
-              <app-icon name="user" class="w-3.5 h-3.5 text-[#c5a059]"></app-icon>
-              <span>Jugador 1</span>
-            </button>
-            <button type="button" 
-                    (click)="fillCredentials('jugador2', 'password123')"
-                    class="py-2 px-3 bg-[#22201d] hover:bg-[#2b2824] border border-[#33302b] rounded-lg text-xs font-semibold text-slate-200 transition-all flex items-center justify-center gap-2">
-              <app-icon name="user" class="w-3.5 h-3.5 text-slate-400"></app-icon>
-              <span>Jugador 2</span>
-            </button>
-          </div>
+          <p class="text-center text-sm text-slate-400 mt-7">
+            ¿No tienes cuenta?
+            <a routerLink="/register" class="text-[#45d4be] font-bold hover:underline ml-1">Crear cuenta</a>
+          </p>
         </div>
-
-        <!-- Enlace a Registro -->
-        <p class="text-center text-xs text-slate-400 mt-6">
-          ¿No tienes una cuenta aún?
-          <a routerLink="/register" class="text-[#c5a059] hover:underline font-semibold ml-1">
-            Crear cuenta gratis
-          </a>
-        </p>
-
       </div>
     </div>
   `
 })
 export class LoginComponent {
+  board = Array.from({ length: 64 }, (_, i) => (Math.floor(i / 8) + i) % 2);
+
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);

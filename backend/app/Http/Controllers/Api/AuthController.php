@@ -129,18 +129,21 @@ class AuthController extends Controller
     /**
      * Obtener el perfil y estadísticas del usuario autenticado.
      */
-    public function me(Request $request): JsonResponse
+    public function me(Request $request, \App\Services\EloCalculatorService $eloService): JsonResponse
     {
         $user = $request->user();
-        if ($user && $user->presence_status !== 'in_game') {
-            $user->update([
-                'presence_status' => 'online',
-                'last_seen_at' => now(),
-            ]);
+        if ($user) {
+            if ($user->presence_status !== 'in_game') {
+                $user->update([
+                    'presence_status' => 'online',
+                    'last_seen_at' => now(),
+                ]);
+            }
+            $eloService->syncUserStats($user);
         }
 
         return response()->json([
-            'user' => $user->load('ratings'),
+            'user' => $user->fresh('ratings'),
         ]);
     }
 

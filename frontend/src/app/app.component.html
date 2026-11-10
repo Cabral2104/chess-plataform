@@ -1,7 +1,19 @@
-<div class="min-h-screen bg-chess-bg text-slate-100 flex flex-col font-sans">
-  <app-navbar></app-navbar>
-
-  <main class="flex-1 w-full pb-16 md:pb-0">
+﻿@switch (layout()) {
+  @case ('auth') {
     <router-outlet></router-outlet>
-  </main>
-</div>
+  }
+  @case ('focus') {
+    <div class="min-h-dvh">
+      <app-navbar [compact]="true" class="contents"></app-navbar>
+      <main class="min-w-0"><router-outlet></router-outlet></main>
+    </div>
+  }
+  @default {
+    <div class="min-h-dvh lg:flex">
+      <app-navbar class="contents lg:block lg:sticky lg:top-0 lg:h-dvh lg:w-64 xl:w-72 lg:shrink-0"></app-navbar>
+      <main class="flex-1 min-w-0 pb-24 lg:pb-0">
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  }
+}

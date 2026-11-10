@@ -6,35 +6,46 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        xs: '420px',
+      },
       colors: {
         chess: {
-          bg: '#161512',           // Fondo oscuro cálido profesional (estilo torneo internacional)
-          surface: '#262421',      // Paneles y superficies elevadas
-          card: '#21201d',         // Tarjetas y modales
-          hover: '#302e2b',        // Estados hover sobrios
-          border: '#363431',       // Bordes sutiles y elegantes
-          borderLight: '#4a4742',  // Bordes activos
-          primary: '#81b64c',      // Verde clásico de ajedrez para acciones principales
-          primaryHover: '#98c862', // Hover del verde ajedrez
-          gold: '#c5a059',         // Oro envejecido/latón para Elo, trofeos y rangos
-          goldHover: '#d4b06b',
-          squareLight: '#f0d9b5',  // Casilla clara clásica (madera cálida / marfil)
-          squareDark: '#b58863',   // Casilla oscura clásica (nogal torneo)
-          fideLight: '#eeeed2',    // Alternativa esmeralda FIDE clara
-          fideDark: '#769656',     // Alternativa esmeralda FIDE oscura
-          squareSelected: 'rgba(247, 247, 105, 0.65)',
-          squareLastMove: 'rgba(187, 203, 43, 0.55)',
-          squareCheck: 'rgba(220, 38, 38, 0.75)',
+          bg: '#0a0d18',
+          surface: '#141830',
+          card: '#10142a',
+          hover: '#1b2040',
+          border: '#232a4a',
+          borderLight: '#38406a',
+          primary: '#2bb5a0',
+          primaryHover: '#45d4be',
+          gold: '#f4b942',
+          goldHover: '#ffd06b',
+          violet: '#8b7cf6',
+          squareLight: '#e4efe9',
+          squareDark: '#2bb5a0',
+          squareSelected: 'rgba(247, 201, 72, 0.65)',
+          squareLastMove: 'rgba(247, 209, 84, 0.55)',
+          squareCheck: 'rgba(239, 68, 68, 0.75)',
         }
       },
       fontFamily: {
-        sans: ['Outfit', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
+        display: ['Bricolage Grotesque', 'Manrope', 'sans-serif'],
       },
       boxShadow: {
-        'chess': '0 4px 20px -2px rgba(0, 0, 0, 0.5)',
-        'board': '0 10px 30px -5px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05)',
-      }
+        'chess': '0 8px 30px -6px rgba(3, 5, 18, 0.7)',
+        'board': '0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 60px -20px rgba(43, 181, 160, 0.35)',
+        'glow': '0 0 24px -4px rgba(43, 181, 160, 0.55)',
+        'glow-gold': '0 0 24px -4px rgba(244, 185, 66, 0.5)',
+      },
+      keyframes: {
+        float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } },
+      },
+      animation: {
+        float: 'float 6s ease-in-out infinite',
+      },
     },
   },
   plugins: [],

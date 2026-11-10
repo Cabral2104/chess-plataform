@@ -1,4 +1,4 @@
-import { Injectable, inject, NgZone } from '@angular/core';
+import { Injectable, inject, NgZone, signal } from '@angular/core';
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import { environment } from '../../../environments/environment';
@@ -16,14 +16,20 @@ import {
 export class WebSocketService {
   private ngZone = inject(NgZone);
   private echo: Echo<'reverb'> | null = null;
+  private wsUnavailable = false;
+  isConnected = signal<boolean>(false);
 
-  constructor() {
-    this.initEcho();
-  }
+  private ensureEcho(): Echo<'reverb'> | null {
+    if (this.wsUnavailable || typeof window === 'undefined') {
+      return null;
+    }
+    if (this.echo) {
+      return this.echo;
+    }
 
-  private initEcho(): void {
-    if (typeof window !== 'undefined') {
+    try {
       (window as any).Pusher = Pusher;
+      const isHttps = environment.reverb.scheme === 'https';
 
       this.echo = new Echo({
         broadcaster: 'reverb',
@@ -31,8 +37,9 @@ export class WebSocketService {
         wsHost: environment.reverb.host,
         wsPort: environment.reverb.port,
         wssPort: environment.reverb.port,
-        forceTLS: environment.reverb.scheme === 'https',
-        enabledTransports: ['ws', 'wss'],
+        forceTLS: isHttps,
+        enabledTransports: isHttps ? ['ws', 'wss'] : ['ws'],
+        disableStats: true,
         authorizer: (channel: any) => {
           return {
             authorize: (socketId: string, callback: Function) => {
@@ -63,12 +70,40 @@ export class WebSocketService {
           };
         },
       });
+
+      const pusherClient = (this.echo.connector as any)?.pusher;
+      if (pusherClient?.connection) {
+        pusherClient.connection.bind('connected', () => {
+          this.ngZone.run(() => this.isConnected.set(true));
+        });
+
+        // Si el servidor Reverb no está encendido en el puerto 8085, cortar reintentos infinitos
+        // para no inundar la consola y delegar en la sincronización reactiva HTTP.
+        const stopRetriesOnOffline = () => {
+          if (!this.isConnected()) {
+            this.wsUnavailable = true;
+            try {
+              pusherClient.disconnect();
+            } catch {
+              // Ignorar error de desconexión
+            }
+          }
+        };
+
+        pusherClient.connection.bind('error', stopRetriesOnOffline);
+        pusherClient.connection.bind('unavailable', stopRetriesOnOffline);
+        pusherClient.connection.bind('failed', stopRetriesOnOffline);
+      }
+    } catch {
+      this.wsUnavailable = true;
+      this.echo = null;
     }
+
+    return this.echo;
   }
 
   /**
    * Conectarse al canal de presencia de una partida específica.
-   * Todos los eventos se despachan dentro de NgZone para asegurar renders instantáneos a 60 FPS.
    */
   joinGameRoom(
     gameCode: string,
@@ -82,9 +117,10 @@ export class WebSocketService {
       onChatMessage?: (payload: ChatMessageSentEventPayload) => void;
     }
   ): void {
-    if (!this.echo) return;
+    const echo = this.ensureEcho();
+    if (!echo) return;
 
-    this.echo.join(`game.${gameCode}`)
+    echo.join(`game.${gameCode}`)
       .here((members: PresenceMember[]) => {
         this.ngZone.run(() => callbacks.onHere?.(members));
       })
@@ -112,7 +148,11 @@ export class WebSocketService {
    * Abandonar el canal de la partida al salir de la pantalla.
    */
   leaveGameRoom(gameCode: string): void {
-    if (!this.echo) return;
-    this.echo.leave(`game.${gameCode}`);
+    if (!this.echo || this.wsUnavailable) return;
+    try {
+      this.echo.leave(`game.${gameCode}`);
+    } catch {
+      // Ignorar
+    }
   }
 }
