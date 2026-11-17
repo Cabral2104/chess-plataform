@@ -16,8 +16,8 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
       <header class="mb-7 flex flex-col lg:flex-row lg:items-end justify-between gap-5">
         <div>
           <div class="eyebrow mb-1.5">Escalafón Mundial FIDE</div>
-          <h1 class="font-display text-3xl sm:text-5xl font-extrabold text-white leading-[1.05]">
-            Clasificación <span class="text-[#f4b942]">Oficial</span>
+          <h1 class="font-display text-3xl sm:text-5xl font-extrabold text-slate-100 leading-[1.05]">
+            Clasificación <span class="text-[#C2A061]">Oficial</span>
           </h1>
           <p class="text-sm text-slate-400 mt-1.5">
             Puntuación Elo calculada en tiempo real con factor reglamentario K=32.
@@ -31,7 +31,7 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
               <button type="button" (click)="changeMode(m.slug)"
                       class="opt shrink-0 whitespace-nowrap px-4 py-2.5 text-xs font-bold flex items-center gap-2"
                       [class.is-active]="selectedMode() === m.slug">
-                <app-icon [name]="m.icon" class="w-4 h-4 text-[#f4b942]"></app-icon>
+                <app-icon [name]="m.icon" class="w-4 h-4 text-[#C2A061]"></app-icon>
                 <span>{{ m.label }}</span>
               </button>
             }
@@ -45,16 +45,16 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
 
       <!-- Banner de tu posición actual en la tabla -->
       @if (myRankEntry(); as mine) {
-        <div class="surface-2 p-3.5 sm:px-5 mb-6 flex items-center justify-between gap-3 border-[#45d4be]/50">
+        <div class="surface-2 p-3.5 sm:px-5 mb-6 flex items-center justify-between gap-3 border-[#C2A061]/50">
           <div class="flex items-center gap-3 min-w-0">
-            <span class="px-2.5 py-1 rounded-lg bg-[#2bb5a0] text-[#04141a] font-mono text-xs font-extrabold">
+            <span class="px-2.5 py-1  bg-[#C2A061] text-[#0F0D0B] font-mono text-xs font-extrabold">
               Puesto #{{ mine.rank }}
             </span>
-            <span class="text-xs sm:text-sm font-bold text-white truncate">
-              Tu posición actual en {{ selectedMode() | uppercase }}
+            <span class="text-xs sm:text-sm font-bold text-slate-100 truncate">
+              Tu posición actual en {{ selectedMode() | titlecase }}
             </span>
           </div>
-          <span class="font-mono text-sm sm:text-base font-extrabold text-[#f4b942] shrink-0">
+          <span class="font-mono text-sm sm:text-base font-extrabold text-[#C2A061] shrink-0">
             {{ mine.entry.rating }} Elo
           </span>
         </div>
@@ -66,34 +66,34 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
 
           <!-- #2 Plata -->
           <div class="surface p-3.5 sm:p-5 text-center order-1 relative">
-            <div class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-700 text-white font-mono text-xs font-extrabold mb-1">2</div>
-            <img [src]="leaderboard()[1].user.avatar_url" class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl mx-auto my-2 bg-[#161e36] ring-2 ring-slate-400" alt="">
+            <div class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-700 text-slate-100 font-mono text-xs font-extrabold mb-1">2</div>
+            <img [src]="leaderboard()[1].user.avatar_url" class="w-12 h-12 sm:w-16 sm:h-16  mx-auto my-2 bg-[#1F1C19] ring-2 ring-slate-400" alt="">
             <div class="flex items-center justify-center gap-1">
               <span class="fide-badge !px-1 !py-0 !text-[9px]">{{ getFideTitle(leaderboard()[1].rating) }}</span>
-              <span class="text-xs sm:text-base font-bold text-white truncate">{{ leaderboard()[1].user.username }}</span>
+              <span class="text-xs sm:text-base font-bold text-slate-100 truncate">{{ leaderboard()[1].user.username }}</span>
             </div>
             <div class="font-mono text-sm sm:text-lg font-extrabold text-slate-200 mt-0.5">{{ leaderboard()[1].rating }} Elo</div>
-            <div class="hidden sm:flex justify-center gap-3 text-[11px] font-mono text-slate-400 mt-2 pt-2 border-t border-[#222c4e]">
-              <span class="text-[#45d4be]">{{ leaderboard()[1].wins_count }}V</span>
+            <div class="hidden sm:flex justify-center gap-3 text-[11px] font-mono text-slate-400 mt-2 pt-2 border-t border-[#4A4540]">
+              <span class="text-[#C2A061]">{{ leaderboard()[1].wins_count }}V</span>
               <span>{{ leaderboard()[1].draws_count }}E</span>
               <span class="text-red-400">{{ leaderboard()[1].losses_count }}D</span>
             </div>
           </div>
 
           <!-- #1 Oro -->
-          <div class="surface p-4 sm:p-6 text-center order-2 !border-[#f4b942] sm:pb-8 relative">
-            <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#f4b942] text-[#141004] text-[10px] font-extrabold uppercase tracking-wider mb-1">
+          <div class="surface p-4 sm:p-6 text-center order-2 !border-[#C2A061] sm:pb-8 relative">
+            <div class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#C2A061] text-[#0F0D0B] text-[10px] font-extrabold   mb-1">
               <app-icon name="crown" class="w-3.5 h-3.5"></app-icon>
               <span>Campeón</span>
             </div>
-            <img [src]="leaderboard()[0].user.avatar_url" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl mx-auto my-2 bg-[#161e36] ring-2 ring-[#f4b942]" alt="">
+            <img [src]="leaderboard()[0].user.avatar_url" class="w-16 h-16 sm:w-20 sm:h-20  mx-auto my-2 bg-[#1F1C19] ring-2 ring-[#C2A061]" alt="">
             <div class="flex items-center justify-center gap-1.5">
               <span class="fide-badge">{{ getFideTitle(leaderboard()[0].rating) }}</span>
-              <span class="text-sm sm:text-xl font-extrabold text-white truncate font-display">{{ leaderboard()[0].user.username }}</span>
+              <span class="text-sm sm:text-xl font-extrabold text-slate-100 truncate">{{ leaderboard()[0].user.username }}</span>
             </div>
-            <div class="font-mono text-base sm:text-2xl font-extrabold text-[#f4b942] mt-0.5">{{ leaderboard()[0].rating }} Elo</div>
-            <div class="hidden sm:flex justify-center gap-3 text-xs font-mono text-slate-300 mt-3 pt-2.5 border-t border-[#222c4e]">
-              <span class="text-[#45d4be] font-bold">{{ leaderboard()[0].wins_count }}V</span>
+            <div class="font-mono text-base sm:text-2xl font-extrabold text-[#C2A061] mt-0.5">{{ leaderboard()[0].rating }} Elo</div>
+            <div class="hidden sm:flex justify-center gap-3 text-xs font-mono text-slate-300 mt-3 pt-2.5 border-t border-[#4A4540]">
+              <span class="text-[#C2A061] font-bold">{{ leaderboard()[0].wins_count }}V</span>
               <span>{{ leaderboard()[0].draws_count }}E</span>
               <span class="text-red-400">{{ leaderboard()[0].losses_count }}D</span>
             </div>
@@ -102,14 +102,14 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
           <!-- #3 Bronce -->
           <div class="surface p-3.5 sm:p-5 text-center order-3 relative">
             <div class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-800 text-amber-100 font-mono text-xs font-extrabold mb-1">3</div>
-            <img [src]="leaderboard()[2].user.avatar_url" class="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl mx-auto my-2 bg-[#161e36] ring-2 ring-amber-700" alt="">
+            <img [src]="leaderboard()[2].user.avatar_url" class="w-12 h-12 sm:w-16 sm:h-16  mx-auto my-2 bg-[#1F1C19] ring-2 ring-amber-700" alt="">
             <div class="flex items-center justify-center gap-1">
               <span class="fide-badge !px-1 !py-0 !text-[9px]">{{ getFideTitle(leaderboard()[2].rating) }}</span>
-              <span class="text-xs sm:text-base font-bold text-white truncate">{{ leaderboard()[2].user.username }}</span>
+              <span class="text-xs sm:text-base font-bold text-slate-100 truncate">{{ leaderboard()[2].user.username }}</span>
             </div>
             <div class="font-mono text-sm sm:text-lg font-extrabold text-amber-300 mt-0.5">{{ leaderboard()[2].rating }} Elo</div>
-            <div class="hidden sm:flex justify-center gap-3 text-[11px] font-mono text-slate-400 mt-2 pt-2 border-t border-[#222c4e]">
-              <span class="text-[#45d4be]">{{ leaderboard()[2].wins_count }}V</span>
+            <div class="hidden sm:flex justify-center gap-3 text-[11px] font-mono text-slate-400 mt-2 pt-2 border-t border-[#4A4540]">
+              <span class="text-[#C2A061]">{{ leaderboard()[2].wins_count }}V</span>
               <span>{{ leaderboard()[2].draws_count }}E</span>
               <span class="text-red-400">{{ leaderboard()[2].losses_count }}D</span>
             </div>
@@ -119,7 +119,7 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
 
       <!-- TABLA DE CLASIFICACIÓN COMPLETA -->
       <section class="surface overflow-hidden">
-        <div class="hidden sm:grid grid-cols-12 gap-2 px-5 py-3 eyebrow border-b border-[#222c4e] bg-[#0c1122]">
+        <div class="hidden sm:grid grid-cols-12 gap-2 px-5 py-3 eyebrow border-b border-[#4A4540] bg-[#0F0D0B]">
           <span class="col-span-1">#</span>
           <span class="col-span-4">Jugador</span>
           <span class="col-span-2 text-right">Rating Elo</span>
@@ -129,7 +129,7 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
 
         @if (isLoading()) {
           <div class="py-14 text-center text-slate-400 text-sm">
-            <svg class="animate-spin w-6 h-6 mx-auto mb-2 text-[#45d4be]" fill="none" viewBox="0 0 24 24">
+            <svg class="animate-spin w-6 h-6 mx-auto mb-2 text-[#C2A061]" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
             </svg>
@@ -139,10 +139,10 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
           <div class="py-12 text-center text-slate-400 text-sm">No se encontraron jugadores con ese criterio.</div>
         } @else {
           @for (item of filteredLeaderboard(); track item.entry.id) {
-            <div class="grid grid-cols-12 gap-2 items-center px-4 sm:px-5 py-3.5 border-b border-[#222c4e] last:border-0 hover:bg-[#161e36]"
-                 [class.bg-[#112a38]]="item.entry.user_id === authService.currentUser()?.id">
+            <div class="grid grid-cols-12 gap-2 items-center px-4 sm:px-5 py-3.5 border-b border-[#4A4540] last:border-0 hover:bg-[#1F1C19]"
+                 [class.bg-[#2A2622]]="item.entry.user_id === authService.currentUser()?.id">
               <span class="col-span-2 sm:col-span-1 font-mono text-sm font-extrabold"
-                    [class.text-[#f4b942]]="item.rank === 1"
+                    [class.text-[#C2A061]]="item.rank === 1"
                     [class.text-slate-300]="item.rank === 2"
                     [class.text-amber-500]="item.rank === 3"
                     [class.text-slate-500]="item.rank > 3">
@@ -150,13 +150,13 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
               </span>
 
               <div class="col-span-6 sm:col-span-4 flex items-center gap-2.5 min-w-0">
-                <img [src]="item.entry.user.avatar_url" class="w-9 h-9 rounded-xl bg-[#161e36] shrink-0" alt="">
+                <img [src]="item.entry.user.avatar_url" class="w-9 h-9  bg-[#1F1C19] shrink-0" alt="">
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5">
                     <span class="fide-badge !px-1 !py-0 !text-[9px]">{{ getFideTitle(item.entry.rating) }}</span>
-                    <span class="font-bold text-white truncate">{{ item.entry.user.username }}</span>
+                    <span class="font-bold text-slate-100 truncate">{{ item.entry.user.username }}</span>
                     @if (item.entry.user_id === authService.currentUser()?.id) {
-                      <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-[#2bb5a0] text-[#04141a]">Tú</span>
+                      <span class="text-[9px] font-extrabold  px-1.5 py-0.2  bg-[#C2A061] text-[#0F0D0B]">Tú</span>
                     }
                   </div>
                   <span class="text-[10px] font-mono text-slate-400 sm:hidden">
@@ -165,19 +165,19 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
                 </div>
               </div>
 
-              <span class="col-span-4 sm:col-span-2 text-right font-mono text-base font-extrabold text-[#f4b942]">
+              <span class="col-span-4 sm:col-span-2 text-right font-mono text-base font-extrabold text-[#C2A061]">
                 {{ item.entry.rating }}
               </span>
 
               <span class="hidden sm:block col-span-2 text-center font-mono text-xs">
-                <span class="text-[#45d4be] font-bold">{{ item.entry.wins_count }}</span> /
+                <span class="text-[#C2A061] font-bold">{{ item.entry.wins_count }}</span> /
                 <span class="text-slate-400">{{ item.entry.draws_count }}</span> /
                 <span class="text-red-400">{{ item.entry.losses_count }}</span>
               </span>
 
               <div class="hidden sm:flex col-span-3 items-center justify-end gap-2.5">
-                <div class="w-24 h-1.5 rounded-full bg-[#0b1020] overflow-hidden">
-                  <div class="h-full bg-[#2bb5a0]" [style.width.%]="getWinRate(item.entry)"></div>
+                <div class="w-24 h-1.5 rounded-full bg-[#0F0D0B] overflow-hidden">
+                  <div class="h-full bg-[#C2A061]" [style.width.%]="getWinRate(item.entry)"></div>
                 </div>
                 <span class="font-mono text-xs font-bold text-slate-200 w-9 text-right">
                   {{ getWinRate(item.entry) }}%

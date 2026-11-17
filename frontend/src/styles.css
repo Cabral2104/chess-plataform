@@ -1,24 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Tema gótico: piedra, hueso y oro viejo */
 :root {
-  --bg: #080b14;
-  --bg-elevated: #0d1221;
-  --surface: #11172a;
-  --surface-2: #161e36;
-  --surface-3: #1c2644;
-  --line: #222c4e;
-  --line-bright: #334272;
-  --text: #eef2ff;
-  --muted: #8b96c2;
-  --primary: #2bb5a0;
-  --primary-2: #45d4be;
-  --gold: #f4b942;
-  --violet: #8b7cf6;
-  --danger: #ef4444;
+  --bg: #0F0D0B;
+  --bg-elevated: #15130F;
+  --surface: #1A1815;
+  --surface-2: #1F1C19;
+  --surface-3: #2A2622;
+  --line: #4A4540;
+  --line-bright: #6B655D;
+  --text: #ECE6D8;
+  --muted: #A39C90;
+  --primary: #ECE6D8;
+  --primary-2: #C2A061;
+  --gold: #C2A061;
+  --violet: #8E877C;
+  --danger: #B84A3E;
 }
 
 @layer base {
@@ -28,25 +29,22 @@
   }
 
   body {
-    @apply font-sans antialiased overflow-x-hidden selection:bg-[#2bb5a0] selection:text-[#04101a];
+    @apply font-sans antialiased overflow-x-hidden selection:bg-[#C2A061] selection:text-[#0F0D0B];
     background-color: var(--bg);
-    background-image:
-      radial-gradient(ellipse 80% 50% at 50% -15%, rgba(43, 181, 160, 0.12), transparent),
-      radial-gradient(ellipse 60% 40% at 95% 10%, rgba(139, 124, 246, 0.08), transparent);
     color: var(--text);
     min-height: 100vh;
     min-height: 100dvh;
-    font-feature-settings: 'ss01', 'cv11';
   }
 
   h1, h2, h3, h4, .font-display {
-    font-family: 'Bricolage Grotesque', 'Manrope', system-ui, sans-serif;
-    letter-spacing: -0.022em;
+    font-family: 'UnifrakturMaguntia', serif;
+    font-weight: 400 !important;
+    letter-spacing: 0.01em;
   }
 
   :focus-visible {
-    outline: 2px solid var(--primary-2);
-    outline-offset: 2px;
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
   }
 
   input, textarea, select {
@@ -59,7 +57,6 @@
   }
 }
 
-/* Scrollbar limpia */
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
@@ -68,44 +65,40 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #253054;
-  border-radius: 9999px;
+  background: #4A4540;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #364576;
+  background: #C2A061;
 }
 
 @layer components {
-  /* ===== Superficies arquitectónicas de respuesta instantánea (0ms lag, sin blur) ===== */
+  /* Superficies de piedra con doble filete tallado */
   .surface {
-    background: linear-gradient(180deg, #131a30 0%, #0f1526 100%);
+    background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 20px;
-    box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    box-shadow: inset 0 0 0 5px var(--surface), inset 0 0 0 6px #2F2B27;
   }
 
   .surface-2 {
     background: var(--surface-2);
     border: 1px solid var(--line);
-    border-radius: 14px;
   }
 
   .surface-interactive {
-    background: linear-gradient(180deg, #131a30 0%, #0f1526 100%);
+    background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 18px;
-    transition: border-color 0.12s ease, transform 0.12s ease;
+    transition: border-color 0.12s ease;
   }
   .surface-interactive:hover {
-    border-color: var(--line-bright);
+    border-color: var(--gold);
   }
 
+  /* Rótulo pequeño en minúscula itálica, sin mayúsculas espaciadas */
   .eyebrow {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 15px;
+    font-style: italic;
+    font-weight: 500;
     color: var(--muted);
   }
 
@@ -113,10 +106,12 @@
     @apply max-w-[1380px] mx-auto px-3.5 sm:px-6 lg:px-10 py-5 sm:py-8;
   }
 
-  /* Botones de respuesta inmediata */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 font-bold text-sm rounded-xl px-5 py-3 select-none cursor-pointer;
-    transition: background-color 0.1s ease, border-color 0.1s ease, color 0.1s ease;
+    @apply inline-flex items-center justify-center gap-2 font-semibold text-base px-5 py-3 select-none cursor-pointer;
+    min-height: 44px;
+    letter-spacing: 0.02em;
+    border: 1px solid transparent;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   }
   .btn:disabled {
     opacity: 0.45;
@@ -124,131 +119,142 @@
   }
   .btn-primary {
     background: var(--primary);
-    color: #04141a;
-    box-shadow: 0 6px 18px -6px rgba(43, 181, 160, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    border-color: var(--primary);
+    color: #0F0D0B;
   }
   .btn-primary:hover:not(:disabled) {
-    background: var(--primary-2);
+    background: var(--gold);
+    border-color: var(--gold);
   }
   .btn-gold {
     background: var(--gold);
-    color: #161004;
-    box-shadow: 0 6px 18px -6px rgba(244, 185, 66, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    border-color: var(--gold);
+    color: #0F0D0B;
   }
   .btn-gold:hover:not(:disabled) {
-    background: #ffd06b;
+    background: var(--primary);
+    border-color: var(--primary);
   }
   .btn-ghost {
-    background: var(--surface-2);
-    border: 1px solid var(--line);
+    background: transparent;
+    border-color: var(--text);
     color: var(--text);
   }
   .btn-ghost:hover:not(:disabled) {
-    border-color: var(--line-bright);
-    background: var(--surface-3);
+    border-color: var(--gold);
+    color: var(--gold);
   }
 
   .chip {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold;
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 text-sm font-medium;
     background: var(--surface-2);
     border: 1px solid var(--line);
   }
 
   .fide-badge {
-    @apply inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-extrabold tracking-wider uppercase;
-    background: rgba(244, 185, 66, 0.15);
+    @apply inline-flex items-center px-1.5 py-0.5 text-xs font-semibold italic;
     color: var(--gold);
-    border: 1px solid rgba(244, 185, 66, 0.35);
+    border: 1px solid rgba(194, 160, 97, 0.5);
   }
 
-  /* Tarjetas de selección ultra-rápidas (0ms delay visual) */
   .opt {
     background: var(--surface-2);
-    border: 1.5px solid var(--line);
-    border-radius: 14px;
+    border: 1px solid var(--line);
     cursor: pointer;
     text-align: left;
     user-select: none;
-    transition: border-color 0.08s ease, background-color 0.08s ease;
+    transition: border-color 0.1s ease, background-color 0.1s ease;
   }
   .opt:hover {
     border-color: var(--line-bright);
-    background: #1a2340;
+    background: var(--surface-3);
   }
   .opt.is-active {
-    border-color: var(--primary-2);
-    background: #112a38;
-    box-shadow: inset 0 0 0 1px rgba(69, 212, 190, 0.35);
+    border-color: var(--text);
+    background: var(--surface-3);
+    box-shadow: inset 0 0 0 1px var(--text);
   }
   .opt.is-active-gold {
     border-color: var(--gold);
-    background: #282215;
-    box-shadow: inset 0 0 0 1px rgba(244, 185, 66, 0.35);
+    background: #2A2419;
+    box-shadow: inset 0 0 0 1px var(--gold);
   }
 
   .field {
-    @apply w-full rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none;
-    background: #0b1020;
-    border: 1.5px solid var(--line);
+    @apply w-full px-4 py-3 text-base placeholder-slate-500 outline-none;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--line);
     transition: border-color 0.12s ease;
   }
   .field:focus {
-    border-color: var(--primary-2);
+    border-color: var(--gold);
   }
   .field-label {
     @apply block mb-1.5;
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 500;
     color: var(--muted);
-    letter-spacing: 0.02em;
   }
 
-  /* ===== Marco del tablero y relojes DGT Pro ===== */
+  /* Marco del tablero: piedra tallada */
   .chess-board-frame {
-    background: linear-gradient(145deg, #161e38 0%, #0b0f1e 100%);
-    border: 1px solid #28345c;
-    box-shadow:
-      0 24px 55px -16px rgba(0, 0, 0, 0.85),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    box-shadow: inset 0 0 0 5px var(--surface-2), inset 0 0 0 6px #2F2B27;
   }
 
   .chess-clock {
-    background: #070a14;
-    border: 1.5px solid var(--line);
-    font-family: 'JetBrains Mono', monospace;
-    font-variant-numeric: tabular-nums;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    font-family: 'EB Garamond', Georgia, serif;
+    font-weight: 600;
+    font-variant-numeric: lining-nums tabular-nums;
     min-width: 6.25rem;
     text-align: center;
+    color: var(--muted);
   }
   .chess-clock-active {
-    border-color: var(--primary-2);
-    background: #0b262b;
-    color: #ffffff;
-    box-shadow: 0 0 20px -4px rgba(69, 212, 190, 0.35);
+    border-color: var(--gold);
+    background: var(--text);
+    color: #0F0D0B;
+    box-shadow: 0 0 0 3px var(--bg), 0 0 0 4px var(--gold);
   }
   .chess-clock-low {
     border-color: var(--danger) !important;
-    background: #2a0e14 !important;
-    color: #fca5a5 !important;
+    background: #2A1210 !important;
+    color: #F0B4A8 !important;
   }
 
-  /* Compatibilidad con clases heredadas */
-  .chess-panel { background: var(--surface); border: 1px solid var(--line); }
+  .chess-panel { background: var(--surface); border: 1px solid var(--line); box-shadow: inset 0 0 0 5px var(--surface), inset 0 0 0 6px #2F2B27; }
   .chess-card { background: var(--surface); border: 1px solid var(--line); }
   .chess-card-elevated { background: var(--surface-2); border: 1px solid var(--line); }
   .chess-card-interactive { background: var(--surface); border: 1px solid var(--line); }
 }
 
-.square-fide-light { background-color: #e4efe9; }
-.square-fide-dark { background-color: #2bb5a0; }
-.move-highlight-last { background-color: rgba(247, 209, 84, 0.5); }
-.move-highlight-selected { box-shadow: inset 0 0 0 4px #f7c948; }
+.square-fide-light { background-color: #D8D0BF; }
+.square-fide-dark { background-color: #3A3530; }
+.move-highlight-last { background-color: rgba(194, 160, 97, 0.42); }
+.move-highlight-selected { box-shadow: inset 0 0 0 4px #C2A061; }
 
+/* Antes degradado turquesa-violeta; en el tema gótico, oro sólido */
 .text-gradient {
-  background: linear-gradient(90deg, #45d4be, #8b7cf6);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--gold);
+}
+
+/* Arco ojival para tarjetas destacadas */
+.g-arch {
+  border-radius: 999px 999px 0 0 / 160px 160px 0 0 !important;
+}
+
+/* Glifos de ajedrez como iconos, nunca emoji */
+.g-glyph {
+  font-family: 'Segoe UI Symbol', 'DejaVu Sans', 'Noto Sans Symbols 2', serif;
+  line-height: 1;
+}
+
+.font-mono {
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .fade-in {

@@ -25,9 +25,9 @@ interface MiniSquare {
       <header class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-5">
         <div>
           <div class="eyebrow mb-1.5">Comunidad en Tiempo Real</div>
-          <h1 class="font-display text-3xl sm:text-5xl font-extrabold text-white leading-[1.05] flex items-center gap-3">
+          <h1 class="font-display text-3xl sm:text-5xl font-extrabold text-slate-100 leading-[1.05] flex items-center gap-3">
             <span>Salas y Chess TV</span>
-            <span class="w-2.5 h-2.5 rounded-full bg-[#2bb5a0] animate-pulse"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#C2A061] animate-pulse"></span>
           </h1>
           <p class="text-sm text-slate-400 mt-1.5 max-w-xl">
             Desafía a jugadores esperando en sala, ingresa con código de invitación o sintoniza tableros en directo.
@@ -46,14 +46,14 @@ interface MiniSquare {
       </header>
 
       <!-- Barra de Pestañas + Buscador -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-6 border-b border-[#222c4e]">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-6 border-b border-[#4A4540]">
         <div class="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
           <button type="button" (click)="activeTab.set('public')"
                   class="opt shrink-0 px-4 py-2.5 text-xs font-bold flex items-center gap-2"
                   [class.is-active]="activeTab() === 'public'">
-            <app-icon name="swords" class="w-4 h-4 text-[#45d4be]"></app-icon>
+            <app-icon name="swords" class="w-4 h-4 text-[#C2A061]"></app-icon>
             <span>Retos Abiertos</span>
-            <span class="px-1.5 py-0.2 rounded-md text-[10px] font-mono bg-[#0b1020]">{{ filteredChallenges().length }}</span>
+            <span class="px-1.5 py-0.2  text-[10px] font-mono bg-[#0F0D0B]">{{ filteredChallenges().length }}</span>
           </button>
 
           <button type="button" (click)="activeTab.set('live')"
@@ -61,13 +61,13 @@ interface MiniSquare {
                   [class.is-active]="activeTab() === 'live'">
             <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
             <span>Chess TV en Vivo</span>
-            <span class="px-1.5 py-0.2 rounded-md text-[10px] font-mono bg-[#0b1020]">{{ activeGames().length }}</span>
+            <span class="px-1.5 py-0.2  text-[10px] font-mono bg-[#0F0D0B]">{{ activeGames().length }}</span>
           </button>
 
           <button type="button" (click)="activeTab.set('private')"
                   class="opt shrink-0 px-4 py-2.5 text-xs font-bold flex items-center gap-2"
                   [class.is-active-gold]="activeTab() === 'private'">
-            <svg class="w-4 h-4 text-[#f4b942]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 text-[#C2A061]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
             </svg>
             <span>Código Privado</span>
@@ -90,10 +90,10 @@ interface MiniSquare {
           @for (filter of ['all', 'blitz', 'rapid', 'bullet']; track filter) {
             <button type="button" (click)="selectedModeFilter.set(filter)"
                     class="shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold capitalize border"
-                    [class.bg-[#2bb5a0]]="selectedModeFilter() === filter"
-                    [class.text-[#04141a]]="selectedModeFilter() === filter"
-                    [class.border-[#2bb5a0]]="selectedModeFilter() === filter"
-                    [class.border-[#222c4e]]="selectedModeFilter() !== filter"
+                    [class.bg-[#C2A061]]="selectedModeFilter() === filter"
+                    [class.text-[#0F0D0B]]="selectedModeFilter() === filter"
+                    [class.border-[#C2A061]]="selectedModeFilter() === filter"
+                    [class.border-[#4A4540]]="selectedModeFilter() !== filter"
                     [class.text-slate-300]="selectedModeFilter() !== filter">
               {{ filter === 'all' ? 'Todos los ritmos' : filter }}
             </button>
@@ -109,7 +109,7 @@ interface MiniSquare {
         } @else if (filteredChallenges().length === 0) {
           <div class="surface p-10 sm:p-14 text-center">
             <app-icon name="swords" class="w-10 h-10 mx-auto text-slate-500 mb-3"></app-icon>
-            <h3 class="font-display text-xl font-bold text-white">No hay retos abiertos con este filtro</h3>
+            <h3 class="font-display text-xl font-bold text-slate-100">No hay retos abiertos con este filtro</h3>
             <p class="text-sm text-slate-400 mt-1 max-w-sm mx-auto">
               Sé el primero en abrir una sala pública para que cualquier jugador conectado acepte tu desafío.
             </p>
@@ -121,24 +121,24 @@ interface MiniSquare {
         } @else {
           <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             @for (chal of filteredChallenges(); track chal.id) {
-              <article class="surface p-5 flex flex-col justify-between gap-4 hover:border-[#334272]">
+              <article class="surface p-5 flex flex-col justify-between gap-4 hover:border-[#6B655D]">
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex items-center gap-3 min-w-0">
                     <img [src]="chal.challenger?.avatar_url"
                          [alt]="chal.challenger?.username"
-                         class="w-11 h-11 rounded-xl bg-[#161e36] ring-1 ring-[#2a3660] shrink-0">
+                         class="w-11 h-11  bg-[#1F1C19] ring-1 ring-[#6B655D] shrink-0">
                     <div class="min-w-0">
                       <div class="flex items-center gap-1.5">
                         <span class="fide-badge !px-1 !py-0 !text-[9px]">{{ getFideTitle(getPlayerElo(chal)) }}</span>
-                        <span class="text-sm font-bold text-white truncate">{{ chal.challenger?.username }}</span>
+                        <span class="text-sm font-bold text-slate-100 truncate">{{ chal.challenger?.username }}</span>
                       </div>
                       <div class="flex items-center gap-2 mt-0.5">
-                        <span class="text-xs text-[#f4b942] font-mono font-bold">{{ getPlayerElo(chal) }} Elo</span>
+                        <span class="text-xs text-[#C2A061] font-mono font-bold">{{ getPlayerElo(chal) }} Elo</span>
                         <span class="text-[10px] font-mono text-slate-400">({{ getEloDiffLabel(chal) }})</span>
                       </div>
                     </div>
                   </div>
-                  <span class="chip shrink-0" [class.!text-[#f4b942]]="chal.is_rated">
+                  <span class="chip shrink-0" [class.!text-[#C2A061]]="chal.is_rated">
                     {{ chal.is_rated ? 'Rankeada' : 'Amistosa' }}
                   </span>
                 </div>
@@ -146,12 +146,12 @@ interface MiniSquare {
                 <!-- Especificación técnica del reto -->
                 <div class="surface-2 p-3.5 flex items-center justify-between">
                   <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-[#0d1221] border border-[#222c4e] flex items-center justify-center text-[#45d4be]">
+                    <div class="w-9 h-9  bg-[#0F0D0B] border border-[#4A4540] flex items-center justify-center text-[#C2A061]">
                       <app-icon [name]="getModeIcon(chal.game_mode?.type)" class="w-5 h-5"></app-icon>
                     </div>
                     <div>
-                      <div class="font-display text-2xl font-extrabold text-white leading-none">
-                        {{ (chal.game_mode?.initial_time_seconds || 180) / 60 }}<span class="text-[#45d4be]">+{{ chal.game_mode?.increment_seconds || 0 }}</span>
+                      <div class="font-mono text-2xl font-extrabold text-slate-100 leading-none">
+                        {{ (chal.game_mode?.initial_time_seconds || 180) / 60 }}<span class="text-[#C2A061]">+{{ chal.game_mode?.increment_seconds || 0 }}</span>
                       </div>
                       <div class="text-[11px] text-slate-400 mt-1 font-semibold">{{ chal.game_mode?.name }}</div>
                     </div>
@@ -159,13 +159,13 @@ interface MiniSquare {
 
                   <div class="text-right">
                     <span class="eyebrow !text-[9px] block">Rival juega</span>
-                    <div class="inline-flex items-center gap-1.5 text-xs font-bold text-white mt-0.5">
+                    <div class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-100 mt-0.5">
                       @if (chal.color_preference === 'white') {
                         <span class="w-3.5 h-3.5 rounded-full bg-white border border-slate-300"></span>Blancas
                       } @else if (chal.color_preference === 'black') {
-                        <span class="w-3.5 h-3.5 rounded-full bg-[#0d1221] border border-[#4a5a8f]"></span>Negras
+                        <span class="w-3.5 h-3.5 rounded-full bg-[#0F0D0B] border border-[#6B655D]"></span>Negras
                       } @else {
-                        <span class="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-white to-[#0d1221]"></span>Azar
+                        <span class="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-white to-[#0F0D0B]"></span>Azar
                       }
                     </div>
                   </div>
@@ -173,7 +173,7 @@ interface MiniSquare {
 
                 @if (chal.challenger_id === authService.currentUser()?.id) {
                   <div class="flex items-center justify-between gap-2 pt-1">
-                    <span class="text-xs text-[#f4b942] flex items-center gap-1.5 font-semibold">
+                    <span class="text-xs text-[#C2A061] flex items-center gap-1.5 font-semibold">
                       <app-icon name="hourglass" class="w-4 h-4 animate-spin"></app-icon>
                       <span>Tu reto (#{{ chal.code }})</span>
                     </span>
@@ -214,7 +214,7 @@ interface MiniSquare {
         } @else if (activeGames().length === 0) {
           <div class="surface p-10 sm:p-14 text-center">
             <app-icon name="board" class="w-10 h-10 mx-auto text-slate-500 mb-3"></app-icon>
-            <h3 class="font-display text-xl font-bold text-white">No hay emisiones en directo ahora mismo</h3>
+            <h3 class="font-display text-xl font-bold text-slate-100">No hay emisiones en directo ahora mismo</h3>
             <p class="text-sm text-slate-400 mt-1 max-w-sm mx-auto">
               En cuanto dos jugadores inicien una partida, verás su tablero en tiempo real aquí.
             </p>
@@ -222,32 +222,32 @@ interface MiniSquare {
         } @else {
           <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             @for (game of activeGames(); track game.id) {
-              <article class="surface p-4 flex flex-col gap-3.5 hover:border-[#334272]">
+              <article class="surface p-4 flex flex-col gap-3.5 hover:border-[#6B655D]">
                 <div class="flex items-center justify-between">
-                  <span class="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-wider text-red-400 font-mono">
+                  <span class="inline-flex items-center gap-2 text-[11px] font-extrabold   text-red-400 font-mono">
                     <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
                     <span>En Directo &middot; Jugada #{{ game.move_count }}</span>
                   </span>
-                  <span class="chip !text-[#f4b942]">{{ game.game_mode?.name }}</span>
+                  <span class="chip !text-[#C2A061]">{{ game.game_mode?.name }}</span>
                 </div>
 
                 <!-- Jugador Negras (arriba del mini-tablero) -->
                 <div class="flex items-center justify-between px-1 text-xs">
                   <div class="flex items-center gap-2 min-w-0">
-                    <span class="w-3 h-3 rounded-full bg-[#0d1221] border border-[#4a5a8f] shrink-0"></span>
+                    <span class="w-3 h-3 rounded-full bg-[#0F0D0B] border border-[#6B655D] shrink-0"></span>
                     <span class="font-bold text-slate-200 truncate">{{ game.black_player?.username }}</span>
                   </div>
-                  <span class="font-mono text-[#f4b942] font-bold">{{ getPlayerEloDirect(game.black_player, game.game_mode?.type) }}</span>
+                  <span class="font-mono text-[#C2A061] font-bold">{{ getPlayerEloDirect(game.black_player, game.game_mode?.type) }}</span>
                 </div>
 
                 <!-- MINI-TABLERO EN TIEMPO REAL RENDERIZADO DESDE EL FEN -->
                 <a [routerLink]="['/game', game.code]"
-                   class="block w-48 h-48 sm:w-52 sm:h-52 mx-auto rounded-xl overflow-hidden border-2 border-[#28345c] shadow-lg group relative">
+                   class="block w-48 h-48 sm:w-52 sm:h-52 mx-auto  overflow-hidden border-2 border-[#6B655D]  group relative">
                   <div class="grid grid-cols-8 grid-rows-8 w-full h-full">
                     @for (sq of getMiniBoard(game.fen); track $index) {
                       <div class="flex items-center justify-center"
-                           [class.bg-[#e4efe9]]="sq.isLight"
-                           [class.bg-[#2bb5a0]]="!sq.isLight">
+                           [class.bg-[#D8D0BF]]="sq.isLight"
+                           [class.bg-[#C2A061]]="!sq.isLight">
                         @if (sq.pieceKey) {
                           <app-chess-piece [pieceKey]="sq.pieceKey" class="w-full h-full p-[4%]"></app-chess-piece>
                         }
@@ -265,7 +265,7 @@ interface MiniSquare {
                     <span class="w-3 h-3 rounded-full bg-white border border-slate-300 shrink-0"></span>
                     <span class="font-bold text-slate-200 truncate">{{ game.white_player?.username }}</span>
                   </div>
-                  <span class="font-mono text-[#f4b942] font-bold">{{ getPlayerEloDirect(game.white_player, game.game_mode?.type) }}</span>
+                  <span class="font-mono text-[#C2A061] font-bold">{{ getPlayerEloDirect(game.white_player, game.game_mode?.type) }}</span>
                 </div>
 
                 <a [routerLink]="['/game', game.code]" class="btn btn-ghost w-full !py-2.5 !text-xs">
@@ -281,20 +281,20 @@ interface MiniSquare {
       @if (activeTab() === 'private') {
         <div class="max-w-xl mx-auto py-4">
           <div class="surface p-6 sm:p-9 text-center">
-            <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[#f4b942]/15 border border-[#f4b942]/30 flex items-center justify-center text-[#f4b942]">
+            <div class="w-14 h-14 mx-auto mb-4  bg-[#C2A061]/15 border border-[#C2A061]/30 flex items-center justify-center text-[#C2A061]">
               <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
               </svg>
             </div>
-            <h2 class="font-display text-2xl font-bold text-white">Ingresar con Código de Invitación</h2>
+            <h2 class="font-display text-2xl font-bold text-slate-100">Ingresar con Código de Invitación</h2>
             <p class="text-sm text-slate-400 mt-1">Introduce el código de 8 caracteres que te envió tu oponente.</p>
 
             <form (ngSubmit)="joinPrivateRoom()" class="mt-7 space-y-4">
               <input id="privateCode" type="text" [(ngModel)]="privateCodeInput" name="privateCode" maxlength="12"
                      placeholder="CH8A29FZ" autocomplete="off"
-                     class="field !text-center !text-2xl font-mono font-bold tracking-[0.3em] uppercase !text-[#f4b942] !py-4">
+                     class="field !text-center !text-2xl font-mono font-bold   !text-[#C2A061] !py-4">
               @if (privateError()) {
-                <div class="p-3 rounded-xl bg-red-950/40 border border-red-800/50 text-red-300 text-xs">{{ privateError() }}</div>
+                <div class="p-3  bg-red-950/40 border border-red-800/50 text-red-300 text-xs">{{ privateError() }}</div>
               }
               <button type="submit" [disabled]="!privateCodeInput.trim() || isJoiningPrivate()" class="btn btn-primary w-full !py-3.5">
                 @if (isJoiningPrivate()) {

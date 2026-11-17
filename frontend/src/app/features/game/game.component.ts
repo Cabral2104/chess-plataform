@@ -83,13 +83,13 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
 
       <!-- Banner de propuesta de tablas entrante -->
       @if (incomingDrawOffer()) {
-        <div class="mb-3 p-3.5 sm:p-4 rounded-2xl bg-[#282215] border border-[#f4b942] flex flex-col sm:flex-row sm:items-center justify-between gap-3 fade-in">
+        <div class="mb-3 p-3.5 sm:p-4  bg-[#2A2419] border border-[#C2A061] flex flex-col sm:flex-row sm:items-center justify-between gap-3 fade-in">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-[#f4b942]/15 text-[#f4b942] flex items-center justify-center shrink-0">
+            <div class="w-10 h-10  bg-[#C2A061]/15 text-[#C2A061] flex items-center justify-center shrink-0">
               <app-icon name="handshake" class="w-5 h-5"></app-icon>
             </div>
             <div>
-              <p class="text-sm font-bold text-white">Propuesta oficial de tablas recibida</p>
+              <p class="text-sm font-bold text-slate-100">Propuesta oficial de tablas recibida</p>
               <p class="text-xs text-amber-200/80">Tu oponente propone acordar el empate reglamentario.</p>
             </div>
           </div>
@@ -111,15 +111,15 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
             <!-- Barra Superior de Estado de Sala -->
             <div class="flex items-center justify-between gap-2 px-1">
               <div class="flex items-center gap-1.5 min-w-0">
-                <span class="chip !text-[#f4b942] font-bold truncate">
+                <span class="chip !text-[#C2A061] font-bold truncate">
                   <app-icon name="flame" class="w-3.5 h-3.5"></app-icon>
                   {{ game()?.game_mode?.name || 'Partida FIDE' }}
                 </span>
                 <button type="button" (click)="copyRoomCode()" title="Copiar código de sala"
-                        class="chip hidden xs:inline-flex font-mono hover:border-[#45d4be] cursor-pointer">
+                        class="chip hidden xs:inline-flex font-mono hover:border-[#C2A061] cursor-pointer">
                   <span>#{{ gameCode() }}</span>
                   @if (copiedCode()) {
-                    <app-icon name="check" class="w-3 h-3 text-[#45d4be]"></app-icon>
+                    <app-icon name="check" class="w-3 h-3 text-[#C2A061]"></app-icon>
                   } @else {
                     <app-icon name="copy" class="w-3 h-3 text-slate-400"></app-icon>
                   }
@@ -135,22 +135,22 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
               <div class="flex items-center gap-2">
                 @if (scrubbedMoveIndex() !== -1) {
                   <button type="button" (click)="scrubLive()"
-                          class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#f4b942] text-[#141004] flex items-center gap-1">
+                          class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#C2A061] text-[#0F0D0B] flex items-center gap-1">
                     <app-icon name="chevrons-right" class="w-3.5 h-3.5"></app-icon>
                     <span>Volver a Vivo</span>
                   </button>
                 } @else if (game()?.game_status === 'in_progress') {
                   <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold"
-                        [class.bg-[#2bb5a0]]="isMyTurn()" [class.text-[#04141a]]="isMyTurn()"
-                        [class.bg-[#161e36]]="!isMyTurn()" [class.text-slate-300]="!isMyTurn()">
+                        [class.bg-[#C2A061]]="isMyTurn()" [class.text-[#0F0D0B]]="isMyTurn()"
+                        [class.bg-[#1F1C19]]="!isMyTurn()" [class.text-slate-300]="!isMyTurn()">
                     <span class="w-2 h-2 rounded-full"
-                          [class.bg-[#04141a]]="isMyTurn()"
+                          [class.bg-[#0F0D0B]]="isMyTurn()"
                           [class.bg-slate-400]="!isMyTurn()"
                           [class.animate-pulse]="isMyTurn()"></span>
                     {{ isMyTurn() ? 'Tu turno de mover' : 'Pensando rival...' }}
                   </span>
                 } @else if (game()?.game_status === 'completed') {
-                  <span class="chip !text-[#f4b942]">Partida finalizada</span>
+                  <span class="chip !text-[#C2A061]">Partida finalizada</span>
                 } @else {
                   <span class="chip">
                     <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
@@ -160,8 +160,8 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
 
                 <button type="button" (click)="toggleZenMode()"
                         [title]="zenMode() ? 'Salir de Modo Zen (Z)' : 'Modo Zen sin distracciones (Z)'"
-                        class="hidden sm:inline-flex chip hover:border-[#45d4be] cursor-pointer"
-                        [class.!border-[#45d4be]]="zenMode()" [class.!text-[#45d4be]]="zenMode()">
+                        class="hidden sm:inline-flex chip hover:border-[#C2A061] cursor-pointer"
+                        [class.!border-[#C2A061]]="zenMode()" [class.!text-[#C2A061]]="zenMode()">
                   <span>{{ zenMode() ? 'Salir Zen' : 'Zen' }}</span>
                 </button>
               </div>
@@ -169,20 +169,20 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
 
             <!-- TARJETA JUGADOR RIVAL (SUPERIOR) -->
             <div class="surface-2 px-3 py-2 flex items-center justify-between gap-3"
-                 [class.!border-[#45d4be]]="game()?.game_status === 'in_progress' && currentTurn() === opponentColor()">
+                 [class.!border-[#C2A061]]="game()?.game_status === 'in_progress' && currentTurn() === opponentColor()">
               <div class="flex items-center gap-3 min-w-0">
                 <div class="relative shrink-0">
                   <img [src]="opponent()?.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=rival'" alt=""
-                       class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#0d1221] ring-1 ring-[#2a3660]">
-                  <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-[#161e36]"
-                        [class.bg-[#2bb5a0]]="isOpponentConnected()" [class.bg-slate-600]="!isOpponentConnected()"
+                       class="w-10 h-10 sm:w-11 sm:h-11  bg-[#0F0D0B] ring-1 ring-[#6B655D]">
+                  <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-[#1F1C19]"
+                        [class.bg-[#C2A061]]="isOpponentConnected()" [class.bg-slate-600]="!isOpponentConnected()"
                         [title]="isOpponentConnected() ? 'En sala' : 'Desconectado'"></span>
                 </div>
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5">
                     <span class="fide-badge !px-1 !py-0 !text-[9px]">{{ getFideTitle(opponentRating()) }}</span>
-                    <span class="text-sm font-bold text-white truncate">{{ opponent()?.username || 'Esperando rival...' }}</span>
-                    <span class="font-mono text-xs font-bold text-[#f4b942]">({{ opponentRating() }})</span>
+                    <span class="text-sm font-bold text-slate-100 truncate">{{ opponent()?.username || 'Esperando rival...' }}</span>
+                    <span class="font-mono text-xs font-bold text-[#C2A061]">({{ opponentRating() }})</span>
                   </div>
                   <div class="flex items-center gap-1 h-4 mt-1">
                     @if (opponentCaptures().length === 0) {
@@ -195,7 +195,7 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
                       }
                     }
                     @if (opponentAdvantage() > 0) {
-                      <span class="ml-2 px-1.5 py-0.2 rounded bg-[#2bb5a0]/15 text-[#45d4be] font-mono text-[10px] font-extrabold">
+                      <span class="ml-2 px-1.5 py-0.2  bg-[#C2A061]/15 text-[#C2A061] font-mono text-[10px] font-extrabold">
                         +{{ opponentAdvantage() }}
                       </span>
                     }
@@ -205,15 +205,15 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
 
               <!-- Reloj Digital DGT del Rival con barra de progreso -->
               <div class="flex flex-col items-end shrink-0">
-                <div class="chess-clock px-3.5 py-1.5 rounded-xl text-xl sm:text-2xl font-extrabold tracking-tight"
+                <div class="chess-clock px-3.5 py-1.5  text-xl sm:text-2xl font-extrabold tracking-tight"
                      [class.chess-clock-active]="game()?.game_status === 'in_progress' && currentTurn() === opponentColor()"
                      [class.chess-clock-low]="isClockLow(opponentTimeMs()) && currentTurn() === opponentColor()"
                      [class.text-slate-500]="currentTurn() !== opponentColor()">
                   {{ formatClock(opponentTimeMs()) }}
                 </div>
-                <div class="w-full h-1 bg-[#0b1020] rounded-full overflow-hidden mt-1">
+                <div class="w-full h-1 bg-[#0F0D0B] rounded-full overflow-hidden mt-1">
                   <div class="h-full transition-all duration-150"
-                       [class.bg-[#45d4be]]="!isClockLow(opponentTimeMs())"
+                       [class.bg-[#C2A061]]="!isClockLow(opponentTimeMs())"
                        [class.bg-red-500]="isClockLow(opponentTimeMs())"
                        [style.width.%]="getClockPercent(opponentTimeMs())"></div>
                 </div>
@@ -225,26 +225,26 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
 
               <!-- Barra de Evaluación Vertical en Vivo (Eval Bar) -->
               @if (showEvalBar()) {
-                <div class="w-3.5 sm:w-5 rounded-xl overflow-hidden bg-[#15192b] border border-[#28345c] flex flex-col relative select-none shrink-0"
+                <div class="w-3.5 sm:w-5  overflow-hidden bg-[#0F0D0B] border border-[#6B655D] flex flex-col relative select-none shrink-0"
                      [class.flex-col-reverse]="orientation() === 'white'"
                      title="Barra de evaluación en tiempo real">
                   <!-- Parte Blanca -->
-                  <div class="bg-[#eef2ff] transition-all duration-300 w-full"
+                  <div class="bg-[#ECE6D8] transition-all duration-300 w-full"
                        [style.height.%]="evalWhitePercent()"></div>
                   <!-- Línea central 0.0 -->
-                  <div class="absolute inset-x-0 top-1/2 h-[1.5px] bg-[#f4b942]/70 pointer-events-none z-10"></div>
+                  <div class="absolute inset-x-0 top-1/2 h-[1.5px] bg-[#C2A061]/70 pointer-events-none z-10"></div>
                   <!-- Etiqueta numérica -->
                   <span class="hidden sm:block absolute inset-x-0 text-[9px] font-mono font-extrabold text-center leading-none z-20 pointer-events-none"
-                        [ngClass]="evalNumber() >= 0 ? (orientation() === 'white' ? 'bottom-1 text-[#141829]' : 'top-1 text-[#141829]') : (orientation() === 'white' ? 'top-1 text-[#eef2ff]' : 'bottom-1 text-[#eef2ff]')">
+                        [ngClass]="evalNumber() >= 0 ? (orientation() === 'white' ? 'bottom-1 text-[#0F0D0B]' : 'top-1 text-[#0F0D0B]') : (orientation() === 'white' ? 'top-1 text-[#ECE6D8]' : 'bottom-1 text-[#ECE6D8]')">
                     {{ evalDisplay() }}
                   </span>
                 </div>
               }
 
               <!-- TABLERO DE AJEDREZ -->
-              <div class="chess-board-frame relative flex-1 aspect-square rounded-2xl p-1.5 sm:p-2.5 select-none"
+              <div class="chess-board-frame relative flex-1 aspect-square  p-1.5 sm:p-2.5 select-none"
                    [style.--sq-l]="boardTheme().light" [style.--sq-d]="boardTheme().dark">
-                <div class="grid grid-cols-8 grid-rows-8 w-full h-full rounded-lg overflow-hidden">
+                <div class="grid grid-cols-8 grid-rows-8 w-full h-full  overflow-hidden">
                   @for (sq of boardSquares(); track sq.square) {
                     <div class="relative flex items-center justify-center cursor-pointer"
                          [style.background-color]="sq.isLight ? 'var(--sq-l)' : 'var(--sq-d)'"
@@ -254,11 +254,11 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
 
                       <!-- Última jugada -->
                       @if (lastMove() && (lastMove()?.from === sq.square || lastMove()?.to === sq.square)) {
-                        <div class="absolute inset-0 bg-[#f7d154]/55 pointer-events-none"></div>
+                        <div class="absolute inset-0 bg-[#C2A061]/55 pointer-events-none"></div>
                       }
                       <!-- Casilla seleccionada -->
                       @if (selectedSquare() === sq.square) {
-                        <div class="absolute inset-0 bg-[#f7c948]/65 pointer-events-none"></div>
+                        <div class="absolute inset-0 bg-[#C2A061]/65 pointer-events-none"></div>
                       }
                       <!-- Jaque al Rey -->
                       @if (isKingInCheck(sq)) {
@@ -299,10 +299,10 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
 
                 <!-- Modal de Coronación de Peón -->
                 @if (promotionPending()) {
-                  <div class="absolute inset-0 z-30 bg-black/80 flex items-center justify-center p-4 rounded-2xl fade-in">
+                  <div class="absolute inset-0 z-30 bg-black/80 flex items-center justify-center p-4  fade-in">
                     <div class="surface p-5 text-center max-w-xs w-full">
                       <p class="eyebrow mb-1">Coronación reglamentaria</p>
-                      <h4 class="font-display text-lg font-bold text-white mb-3">Elige tu pieza</h4>
+                      <h4 class="font-display text-lg font-bold text-slate-100 mb-3">Elige tu pieza</h4>
                       <div class="grid grid-cols-4 gap-2">
                         @for (p of ['q', 'n', 'r', 'b']; track p) {
                           <button type="button" (click)="completePromotion(p)"
@@ -312,7 +312,7 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
                         }
                       </div>
                       <button type="button" (click)="promotionPending.set(null)"
-                              class="mt-3 text-xs text-slate-400 hover:text-white">Cancelar</button>
+                              class="mt-3 text-xs text-slate-400 hover:text-slate-100">Cancelar</button>
                     </div>
                   </div>
                 }
@@ -321,20 +321,20 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
 
             <!-- TARJETA JUGADOR LOCAL (INFERIOR) -->
             <div class="surface-2 px-3 py-2 flex items-center justify-between gap-3"
-                 [class.!border-[#45d4be]]="game()?.game_status === 'in_progress' && currentTurn() === myColor()">
+                 [class.!border-[#C2A061]]="game()?.game_status === 'in_progress' && currentTurn() === myColor()">
               <div class="flex items-center gap-3 min-w-0">
                 <div class="relative shrink-0">
                   <img [src]="bottomPlayer()?.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=player'" alt=""
-                       class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#0d1221] ring-2 ring-[#2bb5a0]">
-                  <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#2bb5a0] ring-2 ring-[#161e36]"></span>
+                       class="w-10 h-10 sm:w-11 sm:h-11  bg-[#0F0D0B] ring-2 ring-[#C2A061]">
+                  <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#C2A061] ring-2 ring-[#1F1C19]"></span>
                 </div>
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5">
                     <span class="fide-badge !px-1 !py-0 !text-[9px]">{{ getFideTitle(myRating()) }}</span>
-                    <span class="text-sm font-bold text-white truncate">{{ bottomPlayer()?.username || 'Jugador' }}</span>
-                    <span class="font-mono text-xs font-bold text-[#f4b942]">({{ myRating() }})</span>
+                    <span class="text-sm font-bold text-slate-100 truncate">{{ bottomPlayer()?.username || 'Jugador' }}</span>
+                    <span class="font-mono text-xs font-bold text-[#C2A061]">({{ myRating() }})</span>
                     @if (isWhitePlayer() || isBlackPlayer()) {
-                      <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-[#2bb5a0]/20 text-[#45d4be]">Tú</span>
+                      <span class="text-[9px] font-extrabold  px-1.5 py-0.5  bg-[#C2A061]/20 text-[#C2A061]">Tú</span>
                     }
                   </div>
                   <div class="flex items-center gap-1 h-4 mt-1">
@@ -348,7 +348,7 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
                       }
                     }
                     @if (myAdvantage() > 0) {
-                      <span class="ml-2 px-1.5 py-0.2 rounded bg-[#2bb5a0]/15 text-[#45d4be] font-mono text-[10px] font-extrabold">
+                      <span class="ml-2 px-1.5 py-0.2  bg-[#C2A061]/15 text-[#C2A061] font-mono text-[10px] font-extrabold">
                         +{{ myAdvantage() }}
                       </span>
                     }
@@ -358,15 +358,15 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
 
               <!-- Reloj Digital DGT Local con barra de progreso -->
               <div class="flex flex-col items-end shrink-0">
-                <div class="chess-clock px-3.5 py-1.5 rounded-xl text-xl sm:text-2xl font-extrabold tracking-tight"
+                <div class="chess-clock px-3.5 py-1.5  text-xl sm:text-2xl font-extrabold tracking-tight"
                      [class.chess-clock-active]="game()?.game_status === 'in_progress' && currentTurn() === myColor()"
                      [class.chess-clock-low]="isClockLow(myTimeMs()) && currentTurn() === myColor()"
                      [class.text-slate-500]="currentTurn() !== myColor()">
                   {{ formatClock(myTimeMs()) }}
                 </div>
-                <div class="w-full h-1 bg-[#0b1020] rounded-full overflow-hidden mt-1">
+                <div class="w-full h-1 bg-[#0F0D0B] rounded-full overflow-hidden mt-1">
                   <div class="h-full transition-all duration-150"
-                       [class.bg-[#45d4be]]="!isClockLow(myTimeMs())"
+                       [class.bg-[#C2A061]]="!isClockLow(myTimeMs())"
                        [class.bg-red-500]="isClockLow(myTimeMs())"
                        [style.width.%]="getClockPercent(myTimeMs())"></div>
                 </div>
@@ -401,17 +401,17 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
           <aside class="surface flex flex-col overflow-hidden xl:sticky xl:top-6">
 
             <!-- Cabecera de pestañas + herramientas rápidas -->
-            <div class="flex items-center justify-between px-3.5 py-2.5 border-b border-[#222c4e]">
-              <div class="flex items-center gap-1 p-1 rounded-xl bg-[#080b14] border border-[#1d2645]">
+            <div class="flex items-center justify-between px-3.5 py-2.5 border-b border-[#4A4540]">
+              <div class="flex items-center gap-1 p-1  bg-[#080b14] border border-[#2A2622]">
                 <button type="button" (click)="activeSideTab.set('moves')"
-                        class="px-3 py-1.5 rounded-lg text-xs font-bold"
-                        [class.bg-[#2bb5a0]]="activeSideTab() === 'moves'" [class.text-[#04141a]]="activeSideTab() === 'moves'"
+                        class="px-3 py-1.5  text-xs font-bold"
+                        [class.bg-[#C2A061]]="activeSideTab() === 'moves'" [class.text-[#0F0D0B]]="activeSideTab() === 'moves'"
                         [class.text-slate-400]="activeSideTab() !== 'moves'">
                   Planilla ({{ movesList().length }})
                 </button>
                 <button type="button" (click)="activeSideTab.set('chat')"
-                        class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5"
-                        [class.bg-[#2bb5a0]]="activeSideTab() === 'chat'" [class.text-[#04141a]]="activeSideTab() === 'chat'"
+                        class="px-3 py-1.5  text-xs font-bold flex items-center gap-1.5"
+                        [class.bg-[#C2A061]]="activeSideTab() === 'chat'" [class.text-[#0F0D0B]]="activeSideTab() === 'chat'"
                         [class.text-slate-400]="activeSideTab() !== 'chat'">
                   <span>Chat</span>
                   @if (chatMessages().length > 0) {
@@ -419,8 +419,8 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
                   }
                 </button>
                 <button type="button" (click)="activeSideTab.set('tools')"
-                        class="px-3 py-1.5 rounded-lg text-xs font-bold"
-                        [class.bg-[#2bb5a0]]="activeSideTab() === 'tools'" [class.text-[#04141a]]="activeSideTab() === 'tools'"
+                        class="px-3 py-1.5  text-xs font-bold"
+                        [class.bg-[#C2A061]]="activeSideTab() === 'tools'" [class.text-[#0F0D0B]]="activeSideTab() === 'tools'"
                         [class.text-slate-400]="activeSideTab() !== 'tools'">
                   Ajustes
                 </button>
@@ -428,27 +428,27 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
 
               <div class="flex items-center gap-1">
                 <button type="button" (click)="toggleOrientation()" title="Girar tablero (Tecla F)"
-                        class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#161e36]">
+                        class="p-2  text-slate-400 hover:text-slate-100 hover:bg-[#1F1C19]">
                   <app-icon name="rotate" class="w-4 h-4"></app-icon>
                 </button>
                 <button type="button" (click)="toggleSound()" title="Activar / Silenciar sonido"
-                        class="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-[#161e36]">
+                        class="p-2  text-slate-400 hover:text-slate-100 hover:bg-[#1F1C19]">
                   <app-icon [name]="soundService.isSoundEnabled() ? 'volume' : 'volume-x'" class="w-4 h-4"></app-icon>
                 </button>
               </div>
             </div>
 
             <!-- Detector de Apertura FIDE / ECO en Tiempo Real -->
-            <div class="px-4 py-2.5 bg-[#0c1122] border-b border-[#222c4e] flex items-center justify-between gap-2">
+            <div class="px-4 py-2.5 bg-[#0F0D0B] border-b border-[#4A4540] flex items-center justify-between gap-2">
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5">
-                  <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-extrabold bg-[#2bb5a0]/15 text-[#45d4be] border border-[#2bb5a0]/30">
+                  <span class="px-1.5 py-0.5  text-[10px] font-mono font-extrabold bg-[#C2A061]/15 text-[#C2A061] border border-[#C2A061]/30">
                     {{ currentOpening().eco }}
                   </span>
                   <span class="text-xs font-bold text-slate-200 truncate">{{ currentOpening().name }}</span>
                 </div>
               </div>
-              <span class="font-mono text-xs font-extrabold px-2 py-0.5 rounded bg-[#161e36] text-slate-200 shrink-0">
+              <span class="font-mono text-xs font-extrabold px-2 py-0.5  bg-[#1F1C19] text-slate-200 shrink-0">
                 Eval {{ evalDisplay() }}
               </span>
             </div>
@@ -464,19 +464,19 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
                   </div>
                 } @else {
                   @for (pair of movePairs(); track pair.num) {
-                    <div class="grid grid-cols-[2.75rem_1fr_1fr] items-center rounded-lg py-0.5"
-                         [class.bg-[#0c1122]]="pair.num % 2 === 0">
+                    <div class="grid grid-cols-[2.75rem_1fr_1fr] items-center  py-0.5"
+                         [class.bg-[#0F0D0B]]="pair.num % 2 === 0">
                       <span class="px-2 py-1 text-slate-500 text-[11px]">{{ pair.num }}.</span>
                       <button type="button" (click)="scrubToMove(pair.whiteIndex)"
-                              class="text-left px-2.5 py-1 rounded-md hover:bg-[#1c2644] font-semibold"
-                              [class.!bg-[#2bb5a0]]="scrubbedMoveIndex() === pair.whiteIndex"
-                              [class.!text-[#04141a]]="scrubbedMoveIndex() === pair.whiteIndex">
+                              class="text-left px-2.5 py-1  hover:bg-[#2A2622] font-semibold"
+                              [class.!bg-[#C2A061]]="scrubbedMoveIndex() === pair.whiteIndex"
+                              [class.!text-[#0F0D0B]]="scrubbedMoveIndex() === pair.whiteIndex">
                         {{ pair.whiteSan }}
                       </button>
                       <button type="button" (click)="scrubToMove(pair.blackIndex)"
-                              class="text-left px-2.5 py-1 rounded-md hover:bg-[#1c2644] font-semibold"
-                              [class.!bg-[#2bb5a0]]="scrubbedMoveIndex() === pair.blackIndex"
-                              [class.!text-[#04141a]]="scrubbedMoveIndex() === pair.blackIndex">
+                              class="text-left px-2.5 py-1  hover:bg-[#2A2622] font-semibold"
+                              [class.!bg-[#C2A061]]="scrubbedMoveIndex() === pair.blackIndex"
+                              [class.!text-[#0F0D0B]]="scrubbedMoveIndex() === pair.blackIndex">
                         {{ pair.blackSan || '' }}
                       </button>
                     </div>
@@ -485,7 +485,7 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
               </div>
 
               <!-- Controles del reproductor de jugadas -->
-              <div class="grid grid-cols-4 gap-1.5 p-3 border-t border-[#222c4e] bg-[#0c1122]">
+              <div class="grid grid-cols-4 gap-1.5 p-3 border-t border-[#4A4540] bg-[#0F0D0B]">
                 <button type="button" (click)="scrubStart()" title="Inicio (↑)" class="btn btn-ghost !p-2">
                   <app-icon name="chevrons-left" class="w-4 h-4"></app-icon>
                 </button>
@@ -515,9 +515,9 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
                     </div>
                   } @else {
                     @for (msg of chatMessages(); track msg.id) {
-                      <div class="surface-2 !rounded-xl px-3 py-2">
+                      <div class="surface-2 ! px-3 py-2">
                         <div class="flex items-center justify-between mb-0.5">
-                          <span class="font-bold text-[#f4b942] text-[11px]">{{ msg.user?.username || 'Jugador' }}</span>
+                          <span class="font-bold text-[#C2A061] text-[11px]">{{ msg.user?.username || 'Jugador' }}</span>
                           <span class="text-[10px] text-slate-500 font-mono">{{ msg.created_at | date:'HH:mm' }}</span>
                         </div>
                         <p class="text-slate-200 break-words text-xs leading-snug">{{ msg.message }}</p>
@@ -527,16 +527,16 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
                 </div>
 
                 <!-- Botones de cortesía deportiva 1-Click -->
-                <div class="px-3 py-1.5 border-t border-[#222c4e] flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                <div class="px-3 py-1.5 border-t border-[#4A4540] flex items-center gap-1.5 overflow-x-auto no-scrollbar">
                   @for (preset of quickChatPresets; track preset) {
                     <button type="button" (click)="sendQuickChat(preset)"
-                            class="shrink-0 px-2.5 py-1 rounded-lg bg-[#161e36] hover:bg-[#1c2644] border border-[#253159] text-[11px] font-semibold text-slate-300 hover:text-white">
+                            class="shrink-0 px-2.5 py-1  bg-[#1F1C19] hover:bg-[#2A2622] border border-[#6B655D] text-[11px] font-semibold text-slate-300 hover:text-slate-100">
                       {{ preset }}
                     </button>
                   }
                 </div>
 
-                <form (ngSubmit)="sendChatMessage()" class="p-2.5 border-t border-[#222c4e] flex gap-2">
+                <form (ngSubmit)="sendChatMessage()" class="p-2.5 border-t border-[#4A4540] flex gap-2">
                   <input type="text" [(ngModel)]="chatInput" name="chatInput" placeholder="Escribe un mensaje..." class="field !py-2">
                   <button type="submit" [disabled]="!chatInput.trim()" class="btn btn-primary !px-4 !py-2 !text-xs">Enviar</button>
                 </form>
@@ -554,7 +554,7 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
                       <button type="button" (click)="setBoardTheme(t.id)"
                               class="opt p-2 flex flex-col items-center gap-1.5"
                               [class.is-active]="boardThemeId() === t.id">
-                        <span class="w-8 h-8 rounded-md overflow-hidden grid grid-cols-2 grid-rows-2 border border-white/15">
+                        <span class="w-8 h-8  overflow-hidden grid grid-cols-2 grid-rows-2 border border-white/15">
                           <span [style.background-color]="t.light"></span><span [style.background-color]="t.dark"></span>
                           <span [style.background-color]="t.dark"></span><span [style.background-color]="t.light"></span>
                         </span>
@@ -570,12 +570,12 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
                   <button type="button" (click)="showEvalBar.set(!showEvalBar())"
                           class="opt w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-bold">
                     <span>Barra de evaluación en vivo</span>
-                    <span class="chip" [class.!text-[#45d4be]]="showEvalBar()">{{ showEvalBar() ? 'Activa' : 'Oculta' }}</span>
+                    <span class="chip" [class.!text-[#C2A061]]="showEvalBar()">{{ showEvalBar() ? 'Activa' : 'Oculta' }}</span>
                   </button>
                   <button type="button" (click)="showCoords.set(!showCoords())"
                           class="opt w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-bold">
                     <span>Coordenadas algebraicas (a-h, 1-8)</span>
-                    <span class="chip" [class.!text-[#45d4be]]="showCoords()">{{ showCoords() ? 'Visibles' : 'Ocultas' }}</span>
+                    <span class="chip" [class.!text-[#C2A061]]="showCoords()">{{ showCoords() ? 'Visibles' : 'Ocultas' }}</span>
                   </button>
                 </div>
 
@@ -584,11 +584,11 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
                   <div class="eyebrow mb-1">Exportar para Análisis</div>
                   <div class="grid grid-cols-2 gap-2">
                     <button type="button" (click)="copyFen()" class="btn btn-ghost !py-2.5 !text-xs">
-                      <app-icon [name]="copiedFen() ? 'check' : 'copy'" class="w-3.5 h-3.5 text-[#45d4be]"></app-icon>
+                      <app-icon [name]="copiedFen() ? 'check' : 'copy'" class="w-3.5 h-3.5 text-[#C2A061]"></app-icon>
                       <span>{{ copiedFen() ? '¡FEN copiado!' : 'Copiar FEN' }}</span>
                     </button>
                     <button type="button" (click)="copyPgn()" class="btn btn-ghost !py-2.5 !text-xs">
-                      <app-icon [name]="copiedPgn() ? 'check' : 'copy'" class="w-3.5 h-3.5 text-[#f4b942]"></app-icon>
+                      <app-icon [name]="copiedPgn() ? 'check' : 'copy'" class="w-3.5 h-3.5 text-[#C2A061]"></app-icon>
                       <span>{{ copiedPgn() ? '¡PGN copiado!' : 'Copiar PGN' }}</span>
                     </button>
                   </div>
@@ -597,11 +597,11 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
             }
 
             <!-- Pie de acciones de partida -->
-            <div class="p-3 border-t border-[#222c4e] space-y-2">
+            <div class="p-3 border-t border-[#4A4540] space-y-2">
               @if (game()?.game_status === 'in_progress' && (isWhitePlayer() || isBlackPlayer())) {
                 <div class="grid grid-cols-2 gap-2">
                   <button type="button" (click)="offerDraw()" [disabled]="isOfferingDraw() || hasOutgoingDrawOffer()" class="btn btn-ghost !py-2.5 !text-xs">
-                    <app-icon name="handshake" class="w-4 h-4 text-[#f4b942]"></app-icon>
+                    <app-icon name="handshake" class="w-4 h-4 text-[#C2A061]"></app-icon>
                     <span>{{ hasOutgoingDrawOffer() ? 'Tablas ofrecidas' : (isOfferingDraw() ? 'Enviando...' : 'Ofrecer tablas') }}</span>
                   </button>
                   <button type="button" (click)="confirmResignPrompt()"
@@ -625,14 +625,14 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
       @if (showResignModal()) {
         <div class="fixed inset-0 z-[60] bg-black/80 flex items-end sm:items-center justify-center sm:p-4 fade-in">
           <div class="w-full max-w-sm surface !rounded-b-none sm:!rounded-b-[20px] p-6 text-center pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-            <div class="w-12 h-12 mx-auto mb-3 rounded-2xl bg-red-950/60 border border-red-800/50 flex items-center justify-center text-red-400">
+            <div class="w-12 h-12 mx-auto mb-3  bg-red-950/60 border border-red-800/50 flex items-center justify-center text-red-400">
               <app-icon name="flag" class="w-6 h-6"></app-icon>
             </div>
-            <h3 class="font-display text-xl font-bold text-white">¿Confirmar abandono?</h3>
+            <h3 class="font-display text-xl font-bold text-slate-100">¿Confirmar abandono?</h3>
             <p class="text-xs text-slate-400 mt-1 mb-5">La victoria se adjudicará a tu oponente y se recalculará el Elo FIDE.</p>
             <div class="grid grid-cols-2 gap-3">
               <button type="button" (click)="showResignModal.set(false)" class="btn btn-ghost">Continuar</button>
-              <button type="button" (click)="executeResign()" class="btn bg-red-600 hover:bg-red-500 text-white">Rendirme</button>
+              <button type="button" (click)="executeResign()" class="btn bg-red-600 hover:bg-red-500 text-slate-100">Rendirme</button>
             </div>
           </div>
         </div>
@@ -643,13 +643,13 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
         <div class="fixed inset-0 z-[60] bg-black/85 flex items-end sm:items-center justify-center sm:p-4 fade-in">
           <div class="w-full max-w-md surface !rounded-b-none sm:!rounded-b-[20px] p-6 sm:p-8 text-center pb-[max(1.5rem,env(safe-area-inset-bottom))] relative overflow-hidden">
             <div class="absolute inset-x-0 top-0 h-1.5"
-                 [class.bg-[#f4b942]]="isWinner()"
+                 [class.bg-[#C2A061]]="isWinner()"
                  [class.bg-slate-400]="isDraw()"
                  [class.bg-red-500]="!isWinner() && !isDraw()"></div>
 
-            <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#161e36] border border-[#28345c] flex items-center justify-center">
+            <div class="w-16 h-16 mx-auto mb-4  bg-[#1F1C19] border border-[#6B655D] flex items-center justify-center">
               @if (isWinner()) {
-                <app-icon name="trophy" class="w-9 h-9 text-[#f4b942]"></app-icon>
+                <app-icon name="trophy" class="w-9 h-9 text-[#C2A061]"></app-icon>
               } @else if (isDraw()) {
                 <app-icon name="handshake" class="w-9 h-9 text-slate-300"></app-icon>
               } @else {
@@ -658,20 +658,20 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
             </div>
 
             <div class="eyebrow mb-1">{{ currentOpening().eco }} &middot; {{ currentOpening().name }}</div>
-            <h2 class="font-display text-4xl font-extrabold text-white">
+            <h2 class="font-display text-4xl font-extrabold text-slate-100">
               @if (isWinner()) { ¡Victoria! } @else if (isDraw()) { Tablas } @else { Derrota }
             </h2>
             <p class="text-sm text-slate-400 mt-1">{{ gameOverReasonText() }}</p>
 
-            <div class="my-6 p-4 surface-2 grid grid-cols-3 items-center divide-x divide-[#222c4e]">
+            <div class="my-6 p-4 surface-2 grid grid-cols-3 items-center divide-x divide-[#4A4540]">
               <div>
                 <div class="eyebrow !text-[10px]">Tu Elo</div>
-                <div class="font-mono text-xl font-bold text-white mt-0.5">{{ myRating() }}</div>
+                <div class="font-mono text-xl font-bold text-slate-100 mt-0.5">{{ myRating() }}</div>
               </div>
               <div>
                 <div class="eyebrow !text-[10px]">Variación</div>
-                <div class="font-display text-2xl font-extrabold mt-0.5"
-                     [class.text-[#45d4be]]="isWinner()"
+                <div class="font-mono text-2xl font-extrabold mt-0.5"
+                     [class.text-[#C2A061]]="isWinner()"
                      [class.text-slate-300]="isDraw()"
                      [class.text-red-400]="!isWinner() && !isDraw()">
                   {{ ratingChangeText() }}
@@ -679,7 +679,7 @@ const ECO_OPENINGS: Array<{ moves: string; eco: string; name: string }> = [
               </div>
               <div>
                 <div class="eyebrow !text-[10px]">Jugadas</div>
-                <div class="font-mono text-xl font-bold text-white mt-0.5">{{ movePairs().length }}</div>
+                <div class="font-mono text-xl font-bold text-slate-100 mt-0.5">{{ movePairs().length }}</div>
               </div>
             </div>
 
@@ -822,7 +822,7 @@ export class GameComponent implements OnInit, OnDestroy {
   activeSideTab = signal<'moves' | 'chat' | 'tools'>('moves');
 
   boardThemes = [
-    { id: 'esmeralda', name: 'Esmeralda', light: '#e4efe9', dark: '#2bb5a0' },
+    { id: 'esmeralda', name: 'Esmeralda', light: '#D8D0BF', dark: '#C2A061' },
     { id: 'madera', name: 'Torneo', light: '#f0d9b5', dark: '#b58863' },
     { id: 'pizarra', name: 'Ártico', light: '#dfe5f2', dark: '#5e72a3' },
     { id: 'violeta', name: 'Amatista', light: '#ece6ff', dark: '#7c6ae6' },

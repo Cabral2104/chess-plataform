@@ -10,35 +10,38 @@ module.exports = {
         xs: '420px',
       },
       colors: {
+        // Tema gótico. slate cálido: text-slate-* lee como hueso y ceniza
+        slate: { 100: '#ECE6D8', 200: '#E0D9CA', 300: '#C9C1B2', 400: '#A39C90', 500: '#857E73', 600: '#5F5950', 700: '#4A4540', 800: '#2A2622', 900: '#1F1C19', 950: '#0F0D0B' },
         chess: {
-          bg: '#0a0d18',
-          surface: '#141830',
-          card: '#10142a',
-          hover: '#1b2040',
-          border: '#232a4a',
-          borderLight: '#38406a',
-          primary: '#2bb5a0',
-          primaryHover: '#45d4be',
-          gold: '#f4b942',
-          goldHover: '#ffd06b',
-          violet: '#8b7cf6',
-          squareLight: '#e4efe9',
-          squareDark: '#2bb5a0',
-          squareSelected: 'rgba(247, 201, 72, 0.65)',
-          squareLastMove: 'rgba(247, 209, 84, 0.55)',
-          squareCheck: 'rgba(239, 68, 68, 0.75)',
+          bg: '#0F0D0B',           // hollín
+          surface: '#1F1C19',      // piedra
+          card: '#1A1815',
+          hover: '#2A2622',
+          border: '#4A4540',       // plomo
+          borderLight: '#6B655D',
+          primary: '#ECE6D8',      // hueso (texto oscuro encima)
+          primaryHover: '#C2A061',
+          gold: '#C2A061',         // oro viejo
+          goldHover: '#ECE6D8',
+          violet: '#8E877C',
+          squareLight: '#D8D0BF',
+          squareDark: '#3A3530',
+          squareSelected: 'rgba(194, 160, 97, 0.55)',
+          squareLastMove: 'rgba(194, 160, 97, 0.42)',
+          squareCheck: 'rgba(184, 74, 62, 0.75)',
         }
       },
       fontFamily: {
-        sans: ['Manrope', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
-        display: ['Bricolage Grotesque', 'Manrope', 'sans-serif'],
+        sans: ['"EB Garamond"', 'Georgia', 'serif'],
+        mono: ['"EB Garamond"', 'Georgia', 'serif'],
+        display: ['UnifrakturMaguntia', 'serif'],
+        gothic: ['UnifrakturMaguntia', 'serif'],
       },
       boxShadow: {
-        'chess': '0 8px 30px -6px rgba(3, 5, 18, 0.7)',
-        'board': '0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 60px -20px rgba(43, 181, 160, 0.35)',
-        'glow': '0 0 24px -4px rgba(43, 181, 160, 0.55)',
-        'glow-gold': '0 0 24px -4px rgba(244, 185, 66, 0.5)',
+        'chess': 'none',
+        'board': 'none',
+        'glow': '0 0 0 1px rgba(194, 160, 97, 0.6)',
+        'glow-gold': '0 0 0 1px rgba(194, 160, 97, 0.8)',
       },
       keyframes: {
         float: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-8px)' } },

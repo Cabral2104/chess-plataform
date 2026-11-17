@@ -5,10 +5,11 @@ import { LobbyComponent } from './features/lobby/lobby.component';
 import { ChallengesComponent } from './features/challenges/challenges.component';
 import { GameComponent } from './features/game/game.component';
 import { LeaderboardComponent } from './features/leaderboard/leaderboard.component';
+import { HomeComponent } from './features/home/home.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'lobby', pathMatch: 'full' },
+  { path: '', component: HomeComponent, pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'lobby', component: LobbyComponent, canActivate: [authGuard] },

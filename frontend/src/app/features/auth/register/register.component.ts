@@ -21,17 +21,17 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
   template: `
     <div class="min-h-dvh lg:min-h-screen grid lg:grid-cols-2">
 
-      <div class="hidden lg:flex flex-col justify-between p-12 bg-[#0d1124] border-r border-[#232b4d] relative overflow-hidden">
-        <div class="eyebrow">Chess Arena &middot; online</div>
+      <div class="hidden lg:flex flex-col justify-between p-12 bg-[#0F0D0B] border-r border-[#2A2622] relative overflow-hidden">
+        <div class="eyebrow">Jaque, ajedrez en tiempo real</div>
         <div class="relative z-10">
-          <h1 class="font-display text-6xl xl:text-7xl font-extrabold text-white leading-[0.98]">
-            Tu camino<br>empieza<br><span class="text-[#f4b942]">aquí.</span>
+          <h1 class="font-display text-6xl xl:text-7xl font-extrabold text-slate-100 leading-[0.98]">
+            Tu camino<br>empieza<br><span class="text-[#C2A061]">aquí.</span>
           </h1>
           <p class="text-slate-400 mt-6 max-w-sm">Crea tu cuenta y arranca con 1200 puntos Elo. Sube en el ranking partida a partida.</p>
         </div>
         <div class="grid grid-cols-8 w-72 rotate-[8deg] opacity-80 absolute -right-10 -bottom-10">
           @for (i of board; track $index) {
-            <div class="aspect-square" [class.bg-[#2bb5a0]]="i % 2 === 0" [class.bg-[#e4efe9]]="i % 2 === 1"></div>
+            <div class="aspect-square" [class.bg-[#C2A061]]="i % 2 === 0" [class.bg-[#D8D0BF]]="i % 2 === 1"></div>
           }
         </div>
         <div class="eyebrow relative z-10">1200 Elo inicial</div>
@@ -40,16 +40,16 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
       <div class="flex items-center justify-center p-5 sm:p-10">
         <div class="w-full max-w-md fade-in">
           <div class="lg:hidden flex items-center gap-2.5 mb-8">
-            <div class="w-9 h-9 rounded-xl bg-[#2bb5a0] text-[#04141a] flex items-center justify-center"><app-icon name="crown" class="w-5 h-5"></app-icon></div>
-            <span class="font-display text-xl font-extrabold text-white">Chess<span class="text-[#45d4be]">Arena</span></span>
+            <div class="w-9 h-9  bg-[#C2A061] text-[#0F0D0B] flex items-center justify-center"><app-icon name="crown" class="w-5 h-5"></app-icon></div>
+            <span class="font-gothic text-4xl text-slate-100 leading-none">Jaque</span>
           </div>
 
           <div class="eyebrow mb-2">Registro</div>
-          <h2 class="font-display text-4xl font-extrabold text-white">Crea tu cuenta</h2>
+          <h2 class="font-display text-4xl font-extrabold text-slate-100">Crea tu cuenta</h2>
           <p class="text-sm text-slate-400 mt-2 mb-7">Solo toma un minuto.</p>
 
           @if (errorMessage()) {
-            <div class="mb-5 p-3 rounded-xl bg-red-950/50 border border-red-800/60 text-red-200 text-xs flex items-center gap-2.5">
+            <div class="mb-5 p-3  bg-red-950/50 border border-red-800/60 text-red-200 text-xs flex items-center gap-2.5">
               <app-icon name="shield" class="w-4 h-4 text-red-400 shrink-0"></app-icon>
               <span>{{ errorMessage() }}</span>
             </div>
@@ -113,7 +113,7 @@ export const passwordMatchValidator: ValidatorFn = (control: AbstractControl): V
 
           <p class="text-center text-sm text-slate-400 mt-7">
             ¿Ya tienes cuenta?
-            <a routerLink="/login" class="text-[#45d4be] font-bold hover:underline ml-1">Inicia sesión</a>
+            <a routerLink="/login" class="text-[#C2A061] font-bold hover:underline ml-1">Inicia sesión</a>
           </p>
         </div>
       </div>

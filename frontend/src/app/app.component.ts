@@ -12,7 +12,7 @@ import { NavbarComponent } from './shared/components/navbar/navbar.component';
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  title = 'Chess Arena';
+  title = 'Jaque';
 
   private router = inject(Router);
 
@@ -28,7 +28,8 @@ export class AppComponent {
   layout(): 'auth' | 'focus' | 'app' {
     const u = this.url();
     if (u.startsWith('/login') || u.startsWith('/register')) return 'auth';
-    if (u.startsWith('/game')) return 'focus';
+    // Portada (/) a pantalla completa, sin barra lateral
+    if (u.startsWith('/game') || u === '/' || u.startsWith('/#') || u.startsWith('/?')) return 'focus';
     return 'app';
   }
 }
