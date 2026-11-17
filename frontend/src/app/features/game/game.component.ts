@@ -38,9 +38,9 @@ interface BoardSquare {
       
       <!-- Banner de Oferta de Tablas Entrante -->
       @if (incomingDrawOffer()) {
-        <div class="mb-4 p-3.5 rounded-xl bg-[#2a261c] border border-chess-gold/80 text-amber-200 shadow-xl flex items-center justify-between gap-4 fade-in">
+        <div class="mb-4 p-3.5  bg-[#2a261c] border border-chess-gold/80 text-amber-200  flex items-center justify-between gap-4 fade-in">
           <div class="flex items-center gap-3">
-            <span class="text-xl">🤝</span>
+            <span class="g-title text-chess-gold" aria-hidden="true">½</span>
             <div>
               <p class="text-sm font-semibold text-slate-100">Tu rival te ha propuesto tablas</p>
               <p class="text-xs text-amber-300/80">Puedes aceptar para finalizar la partida en empate</p>
@@ -48,11 +48,11 @@ interface BoardSquare {
           </div>
           <div class="flex items-center gap-2">
             <button (click)="acceptDrawOffer()" 
-                    class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow">
-              Aceptar Tablas
+                    class="px-3.5 py-1.5  bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all ">
+              Aceptar tablas
             </button>
             <button (click)="rejectDrawOffer()" 
-                    class="px-3.5 py-1.5 rounded-lg bg-[#38342e] hover:bg-[#454038] text-slate-300 text-xs font-semibold transition-all">
+                    class="px-3.5 py-1.5  bg-[#38342e] hover:bg-[#454038] text-slate-300 text-xs font-semibold transition-all">
               Rechazar
             </button>
           </div>
@@ -67,15 +67,15 @@ interface BoardSquare {
           <div class="w-full max-w-[620px] flex flex-col gap-2">
             
             <!-- TARJETA RIVAL (SUPERIOR) -->
-            <div class="chess-card rounded-lg p-2.5 sm:p-3 flex items-center justify-between border border-[#33302c] shadow">
+            <div class="chess-card  p-2.5 sm:p-3 flex items-center justify-between border border-chess-border ">
               <div class="flex items-center gap-2.5">
                 <div class="relative">
                   <img [src]="opponent()?.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=rival'" 
-                       class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#2a2825] border border-[#44403a]">
+                       class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#2A2622] border border-[#44403a]">
                   @if (isOpponentConnected()) {
-                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#21201d]" title="Conectado"></span>
+                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-chess-card" title="Conectado"></span>
                   } @else {
-                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-slate-500 ring-2 ring-[#21201d]" title="Desconectado"></span>
+                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-slate-500 ring-2 ring-chess-card" title="Desconectado"></span>
                   }
                 </div>
                 <div>
@@ -89,7 +89,7 @@ interface BoardSquare {
                   </div>
                   <!-- Piezas capturadas por el rival -->
                   <div class="flex items-center gap-1 mt-0.5 text-xs text-slate-400">
-                    <span class="text-[11px] font-mono tracking-tight">{{ opponentColor() === 'w' ? '⚪ Blancas' : '⚫ Negras' }}</span>
+                    <span class="text-[11px] font-mono tracking-tight">{{ opponentColor() === 'w' ? 'Blancas' : 'Negras' }}</span>
                     @if (opponentAdvantage() > 0) {
                       <span class="text-[10px] font-mono font-bold text-emerald-400 ml-1">+{{ opponentAdvantage() }}</span>
                     }
@@ -98,12 +98,12 @@ interface BoardSquare {
               </div>
 
               <!-- Reloj del Rival -->
-              <div class="px-3.5 py-1.5 rounded-md font-mono text-base sm:text-lg font-bold tracking-wider border transition-all"
-                   [class.bg-[#2f2c27]]="currentTurn() === opponentColor()"
+              <div class="px-3.5 py-1.5  font-mono text-2xl sm:text-3xl font-semibold min-w-[110px] text-right border transition-all"
+                   [class.bg-slate-100]="currentTurn() === opponentColor()"
                    [class.border-chess-gold]="currentTurn() === opponentColor()"
-                   [class.text-slate-100]="currentTurn() === opponentColor()"
-                   [class.bg-[#181715]]="currentTurn() !== opponentColor()"
-                   [class.border-[#302e2b]]="currentTurn() !== opponentColor()"
+                   [class.text-chess-bg]="currentTurn() === opponentColor()"
+                   [class.bg-chess-bg]="currentTurn() !== opponentColor()"
+                   [class.border-chess-border]="currentTurn() !== opponentColor()"
                    [class.text-slate-400]="currentTurn() !== opponentColor()"
                    [class.animate-pulse]="isClockLow(opponentTimeMs()) && currentTurn() === opponentColor()">
                 {{ formatClock(opponentTimeMs()) }}
@@ -111,21 +111,21 @@ interface BoardSquare {
             </div>
 
             <!-- TABLERO PRINCIPAL (64 CASILLAS VECTORIALES CON COORDENADAS) -->
-            <div class="relative w-full aspect-square rounded-lg shadow-2xl border-4 border-[#2b2824] bg-[#22201d] overflow-hidden select-none">
+            <div class="relative w-full aspect-square   border-[12px] border-chess-surface outline outline-1 outline-chess-border bg-chess-bg overflow-hidden select-none">
               
               <div class="grid grid-cols-8 grid-rows-8 w-full h-full">
                 @for (sq of boardSquares(); track sq.square) {
                   <div class="relative flex items-center justify-center cursor-pointer transition-colors"
-                       [class.bg-[#edeed1]]="sq.isLight"
-                       [class.bg-[#779952]]="!sq.isLight"
+                       [class.bg-[#d8d0bf]]="sq.isLight"
+                       [class.bg-[#3a3530]]="!sq.isLight"
                        [class.ring-inset]="selectedSquare() === sq.square"
                        [class.ring-4]="selectedSquare() === sq.square"
-                       [class.ring-[#baca44]]="selectedSquare() === sq.square"
+                       [class.ring-[#c2a061]]="selectedSquare() === sq.square"
                        (click)="onSquareClick(sq)">
                     
                     <!-- Resaltado de Último Movimiento -->
                     @if (lastMove() && (lastMove()?.from === sq.square || lastMove()?.to === sq.square)) {
-                      <div class="absolute inset-0 bg-[#cdd26a]/50 pointer-events-none"></div>
+                      <div class="absolute inset-0 bg-[#c2a061]/40 pointer-events-none"></div>
                     }
 
                     <!-- Resaltado de Rey en Jaque -->
@@ -136,15 +136,15 @@ interface BoardSquare {
                     <!-- Coordenadas sutiles en los bordes (FIDE standard) -->
                     @if (isRankLabelVisible(sq)) {
                       <span class="absolute top-0.5 left-1 text-[9px] sm:text-[10px] font-bold font-mono pointer-events-none select-none"
-                            [class.text-[#779952]]="sq.isLight"
-                            [class.text-[#edeed1]]="!sq.isLight">
+                            [class.text-[#3a3530]]="sq.isLight"
+                            [class.text-[#d8d0bf]]="!sq.isLight">
                         {{ sq.rank }}
                       </span>
                     }
                     @if (isFileLabelVisible(sq)) {
                       <span class="absolute bottom-0.5 right-1 text-[9px] sm:text-[10px] font-bold font-mono pointer-events-none select-none"
-                            [class.text-[#779952]]="sq.isLight"
-                            [class.text-[#edeed1]]="!sq.isLight">
+                            [class.text-[#3a3530]]="sq.isLight"
+                            [class.text-[#d8d0bf]]="!sq.isLight">
                         {{ sq.file }}
                       </span>
                     }
@@ -172,15 +172,15 @@ interface BoardSquare {
               <!-- MODAL DE CORONACIÓN DE PEÓN -->
               @if (promotionPending()) {
                 <div class="absolute inset-0 z-30 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 fade-in">
-                  <div class="bg-[#24221f] border border-chess-gold rounded-xl p-4 shadow-2xl text-center">
-                    <p class="text-xs font-bold text-slate-200 mb-3 uppercase tracking-wider">
+                  <div class="bg-[#24221f] border border-chess-gold  p-4  text-center">
+                    <p class="text-xs font-bold text-slate-200 mb-3  ">
                       Elige pieza de coronación
                     </p>
                     <div class="grid grid-cols-4 gap-2">
                       @for (p of ['q', 'n', 'r', 'b']; track p) {
                         <button type="button" 
                                 (click)="completePromotion(p)"
-                                class="w-14 h-14 bg-[#1b1a18] hover:bg-[#33302b] border border-[#3e3b37] rounded-lg p-1 transition-all transform active:scale-90 flex items-center justify-center shadow">
+                                class="w-14 h-14 bg-chess-bg hover:bg-[#33302b] border border-chess-border  p-1 transition-all transform active:scale-90 flex items-center justify-center ">
                           <app-chess-piece [pieceKey]="myColor() + p.toUpperCase()" class="w-full h-full"></app-chess-piece>
                         </button>
                       }
@@ -192,12 +192,12 @@ interface BoardSquare {
             </div>
 
             <!-- TARJETA JUGADOR LOCAL (INFERIOR) -->
-            <div class="chess-card rounded-lg p-2.5 sm:p-3 flex items-center justify-between border border-[#33302c] shadow">
+            <div class="chess-card  p-2.5 sm:p-3 flex items-center justify-between border border-chess-border ">
               <div class="flex items-center gap-2.5">
                 <div class="relative">
                   <img [src]="authService.currentUser()?.avatar_url" 
-                       class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#2a2825] border border-chess-gold/60 shadow">
-                  <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-[#21201d]"></span>
+                       class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#2A2622] border border-chess-gold/60 ">
+                  <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-chess-card"></span>
                 </div>
                 <div>
                   <div class="flex items-center gap-1.5">
@@ -207,10 +207,10 @@ interface BoardSquare {
                     <span class="text-[10px] text-chess-gold font-mono font-semibold">
                       {{ myRating() }}
                     </span>
-                    <span class="text-[9px] bg-chess-gold/15 text-chess-gold px-1 rounded uppercase font-semibold">Tú</span>
+                    <span class="text-[9px] bg-chess-gold/15 text-chess-gold px-1   font-semibold">Tú</span>
                   </div>
                   <div class="flex items-center gap-1 mt-0.5 text-xs text-slate-400">
-                    <span class="text-[11px] font-mono tracking-tight">{{ myColor() === 'w' ? '⚪ Blancas' : '⚫ Negras' }}</span>
+                    <span class="text-[11px] font-mono tracking-tight">{{ myColor() === 'w' ? 'Blancas' : 'Negras' }}</span>
                     @if (myAdvantage() > 0) {
                       <span class="text-[10px] font-mono font-bold text-emerald-400 ml-1">+{{ myAdvantage() }}</span>
                     }
@@ -219,12 +219,12 @@ interface BoardSquare {
               </div>
 
               <!-- Reloj del Jugador Local -->
-              <div class="px-3.5 py-1.5 rounded-md font-mono text-base sm:text-lg font-bold tracking-wider border transition-all"
-                   [class.bg-[#2f2c27]]="currentTurn() === myColor()"
+              <div class="px-3.5 py-1.5  font-mono text-2xl sm:text-3xl font-semibold min-w-[110px] text-right border transition-all"
+                   [class.bg-slate-100]="currentTurn() === myColor()"
                    [class.border-chess-gold]="currentTurn() === myColor()"
-                   [class.text-slate-100]="currentTurn() === myColor()"
-                   [class.bg-[#181715]]="currentTurn() !== myColor()"
-                   [class.border-[#302e2b]]="currentTurn() !== myColor()"
+                   [class.text-chess-bg]="currentTurn() === myColor()"
+                   [class.bg-chess-bg]="currentTurn() !== myColor()"
+                   [class.border-chess-border]="currentTurn() !== myColor()"
                    [class.text-slate-400]="currentTurn() !== myColor()"
                    [class.animate-pulse]="isClockLow(myTimeMs()) && currentTurn() === myColor()">
                 {{ formatClock(myTimeMs()) }}
@@ -239,19 +239,19 @@ interface BoardSquare {
         <div class="lg:col-span-4 space-y-4">
           
           <!-- PANEL PRINCIPAL DE PARTIDA -->
-          <div class="chess-panel rounded-xl border border-[#363431] p-4 shadow-xl">
+          <div class="chess-panel  border border-chess-border p-4 ">
             
             <!-- Encabezado con Modo de Juego & Estado -->
-            <div class="flex items-center justify-between pb-3 border-b border-[#302e2b]">
+            <div class="flex items-center justify-between pb-3 border-b border-chess-border">
               <div>
-                <span class="text-xs font-mono text-chess-gold uppercase tracking-wider block">
+                <span class="g-title text-3xl text-slate-100 block">
                   {{ game()?.game_mode?.name || 'Ajedrez Online' }}
                 </span>
                 <span class="text-sm font-bold text-slate-100">
                   @if (game()?.game_status === 'in_progress') {
                     <span class="text-emerald-400">&bull; Partida en curso</span>
                   } @else if (game()?.game_status === 'completed') {
-                    <span class="text-chess-gold">&bull; Partida Concluida</span>
+                    <span class="text-chess-gold">&bull; Partida concluida</span>
                   } @else {
                     <span class="text-slate-400">&bull; Esperando inicio</span>
                   }
@@ -263,26 +263,26 @@ interface BoardSquare {
                 <button type="button" 
                         (click)="toggleOrientation()" 
                         title="Invertir Tablero"
-                        class="p-1.5 rounded bg-[#262421] hover:bg-[#33302c] border border-[#3e3b37] text-slate-300 transition-colors">
-                  🔄
+                        class="px-2.5 py-1.5 text-sm bg-chess-bg hover:bg-[#2A2622] border border-chess-border text-slate-300 hover:text-chess-gold transition-colors">
+                  Girar
                 </button>
                 <button type="button" 
                         (click)="toggleSound()" 
                         title="Activar / Silenciar Sonido"
-                        class="p-1.5 rounded bg-[#262421] hover:bg-[#33302c] border border-[#3e3b37] text-slate-300 transition-colors">
-                  {{ soundService.isSoundEnabled() ? '🔊' : '🔇' }}
+                        class="px-2.5 py-1.5 text-sm bg-chess-bg hover:bg-[#2A2622] border border-chess-border text-slate-300 hover:text-chess-gold transition-colors">
+                  {{ soundService.isSoundEnabled() ? 'Sonido sí' : 'Sonido no' }}
                 </button>
               </div>
             </div>
 
             <!-- REGISTRO DE MOVIMIENTOS (SAN NOTATION) -->
             <div class="mt-3">
-              <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1 flex items-center justify-between">
-                <span>Jugadas Realizadas ({{ movesList().length }})</span>
-                <span class="font-mono text-slate-500">SAN FIDE</span>
+              <div class="text-[11px] font-semibold text-slate-400   mb-1 flex items-center justify-between">
+                <span class="g-title text-slate-100">Jugadas</span>
+                <span class="font-mono text-sm text-slate-500">{{ movesList().length }}</span>
               </div>
 
-              <div class="h-44 overflow-y-auto bg-[#181715] rounded-lg p-2 border border-[#302e2b] text-xs font-mono space-y-1">
+              <div class="h-44 overflow-y-auto bg-chess-bg  p-2 border border-chess-border text-base font-mono space-y-1">
                 @if (movePairs().length === 0) {
                   <div class="text-slate-500 text-center py-8 italic">
                     Aún no se han efectuado movimientos
@@ -294,7 +294,7 @@ interface BoardSquare {
                     <span class="col-span-5">Negras</span>
                   </div>
                   @for (pair of movePairs(); track pair.num) {
-                    <div class="grid grid-cols-12 gap-1 py-0.5 text-slate-300 hover:bg-[#22201d] rounded px-1">
+                    <div class="grid grid-cols-12 gap-1 py-0.5 text-slate-300 hover:bg-[#22201d]  px-1">
                       <span class="col-span-2 text-slate-500">{{ pair.num }}.</span>
                       <span class="col-span-5 cursor-pointer hover:text-chess-gold transition-colors"
                             [class.text-chess-gold]="scrubbedMoveIndex() === pair.whiteIndex"
@@ -313,16 +313,16 @@ interface BoardSquare {
 
               <!-- Botones de Navegación del Historial (Scrubber) -->
               <div class="flex items-center justify-center gap-1.5 mt-2">
-                <button type="button" (click)="scrubStart()" class="px-2 py-1 bg-[#24221f] hover:bg-[#2e2c28] border border-[#383531] rounded text-xs text-slate-300">
+                <button type="button" (click)="scrubStart()" class="px-2 py-1 bg-[#24221f] hover:bg-[#2e2c28] border border-chess-border  text-xs text-slate-300">
                   |&lt;&lt;
                 </button>
-                <button type="button" (click)="scrubPrev()" class="px-3 py-1 bg-[#24221f] hover:bg-[#2e2c28] border border-[#383531] rounded text-xs text-slate-300">
+                <button type="button" (click)="scrubPrev()" class="px-3 py-1 bg-[#24221f] hover:bg-[#2e2c28] border border-chess-border  text-xs text-slate-300">
                   &lt;
                 </button>
-                <button type="button" (click)="scrubNext()" class="px-3 py-1 bg-[#24221f] hover:bg-[#2e2c28] border border-[#383531] rounded text-xs text-slate-300">
+                <button type="button" (click)="scrubNext()" class="px-3 py-1 bg-[#24221f] hover:bg-[#2e2c28] border border-chess-border  text-xs text-slate-300">
                   &gt;
                 </button>
-                <button type="button" (click)="scrubLive()" class="px-2 py-1 bg-[#24221f] hover:bg-[#2e2c28] border border-[#383531] rounded text-xs text-slate-300"
+                <button type="button" (click)="scrubLive()" class="px-2 py-1 bg-[#24221f] hover:bg-[#2e2c28] border border-chess-border  text-xs text-slate-300"
                         [class.border-chess-gold]="scrubbedMoveIndex() === -1">
                   &gt;&gt;| En vivo
                 </button>
@@ -331,24 +331,24 @@ interface BoardSquare {
 
             <!-- BOTONES DE ACCIÓN (TABLAS / ABANDONAR) -->
             @if (game()?.game_status === 'in_progress') {
-              <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-[#302e2b]">
+              <div class="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-chess-border">
                 <button type="button" 
                         (click)="offerDraw()"
                         [disabled]="isOfferingDraw()"
-                        class="py-2 px-3 rounded-lg bg-[#272522] hover:bg-[#302e2a] border border-[#3d3a35] text-slate-300 hover:text-white text-xs font-semibold transition-all">
-                  🤝 Ofrecer Tablas
+                        class="py-2 px-3  bg-[#272522] hover:bg-[#2A2622] border border-[#3d3a35] text-slate-300 hover:text-white text-xs font-semibold transition-all">
+                  Ofrecer tablas
                 </button>
                 <button type="button" 
                         (click)="confirmResignPrompt()"
-                        class="py-2 px-3 rounded-lg bg-[#2f2222] hover:bg-[#3a2828] border border-red-900/60 text-red-300 hover:text-red-200 text-xs font-semibold transition-all">
-                  🏳️ Rendirse
+                        class="py-2 px-3  bg-[#2f2222] hover:bg-[#3a2828] border border-red-900/60 text-red-300 hover:text-red-200 text-xs font-semibold transition-all">
+                  Abandonar
                 </button>
               </div>
             } @else {
-              <div class="mt-4 pt-3 border-t border-[#302e2b]">
+              <div class="mt-4 pt-3 border-t border-chess-border">
                 <a routerLink="/lobby" 
-                   class="w-full py-2.5 px-4 rounded-lg bg-chess-primary hover:bg-chess-primaryHover text-white text-xs font-bold transition-all shadow flex items-center justify-center gap-2">
-                  <span>← Volver al Lobby de Salas</span>
+                   class="w-full py-2.5 px-4  bg-chess-primary hover:bg-chess-primaryHover text-chess-bg text-xs font-bold transition-all  flex items-center justify-center gap-2">
+                  <span>Volver al lobby</span>
                 </a>
               </div>
             }
@@ -356,10 +356,10 @@ interface BoardSquare {
           </div>
 
           <!-- CHAT EN TIEMPO REAL DENTRO DE LA PARTIDA -->
-          <div class="chess-panel rounded-xl border border-[#363431] p-4 shadow-xl flex flex-col h-64">
-            <div class="flex items-center justify-between pb-2 border-b border-[#302e2b] mb-2">
-              <span class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                <span>💬 Chat de la Sala</span>
+          <div class="chess-panel  border border-chess-border p-4  flex flex-col h-64">
+            <div class="flex items-center justify-between pb-2 border-b border-chess-border mb-2">
+              <span class="text-xs font-bold text-slate-200   flex items-center gap-1.5">
+                <span class="g-title text-slate-100">Chat</span>
               </span>
               <span class="text-[10px] text-slate-500 font-mono">
                 {{ chatMessages().length }} mensajes
@@ -374,7 +374,7 @@ interface BoardSquare {
                 </div>
               } @else {
                 @for (msg of chatMessages(); track msg.id) {
-                  <div class="p-2 rounded-lg bg-[#1c1b18] border border-[#2e2c28]">
+                  <div class="p-2  bg-chess-bg border border-[#2e2c28]">
                     <div class="flex items-center justify-between mb-0.5">
                       <span class="font-bold text-chess-gold text-[11px]">
                         {{ msg.user?.username || 'Jugador' }}
@@ -397,10 +397,10 @@ interface BoardSquare {
                      [(ngModel)]="chatInput" 
                      name="chatInput"
                      placeholder="Escribe un mensaje..."
-                     class="flex-1 bg-[#181715] border border-[#383531] rounded-lg px-2.5 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-chess-gold/80 transition-colors">
+                     class="flex-1 bg-chess-bg border border-chess-border  px-2.5 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-chess-gold/80 transition-colors">
               <button type="submit" 
                       [disabled]="!chatInput.trim()"
-                      class="px-3 py-1.5 rounded-lg bg-chess-primary hover:bg-chess-primaryHover disabled:opacity-40 text-white text-xs font-bold transition-all shadow">
+                      class="px-3 py-1.5  bg-chess-primary hover:bg-chess-primaryHover disabled:opacity-40 text-chess-bg text-xs font-bold transition-all ">
                 Enviar
               </button>
             </form>
@@ -413,22 +413,22 @@ interface BoardSquare {
       <!-- MODAL DE CONFIRMACIÓN DE ABANDONO -->
       @if (showResignModal()) {
         <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4 fade-in">
-          <div class="w-full max-w-sm bg-[#21201d] border border-red-900/80 rounded-xl shadow-2xl p-6 text-center">
-            <span class="text-4xl block mb-2">🏳️</span>
-            <h3 class="text-lg font-bold text-slate-100">¿Deseas rendirte?</h3>
+          <div class="w-full max-w-sm bg-chess-card border border-red-900/80   p-6 text-center">
+            <span class="g-glyph text-6xl block mb-3 text-slate-300" aria-hidden="true">&#9812;&#xFE0E;</span>
+            <h3 class="g-title text-3xl text-slate-100">¿Abandonar la partida?</h3>
             <p class="text-xs text-slate-400 mt-1 mb-5">
               La victoria será otorgada inmediatamente a tu rival y se ajustará la puntuación Elo correspondiente.
             </p>
             <div class="grid grid-cols-2 gap-3">
               <button type="button" 
                       (click)="showResignModal.set(false)"
-                      class="py-2 rounded-lg bg-[#2e2b27] hover:bg-[#38342f] text-slate-200 text-xs font-semibold">
+                      class="py-2  bg-[#2A2622] hover:bg-[#38342f] text-slate-200 text-xs font-semibold">
                 Cancelar
               </button>
               <button type="button" 
                       (click)="executeResign()"
-                      class="py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-xs font-bold shadow">
-                Sí, Rendirse
+                      class="py-2  bg-red-700 hover:bg-red-600 text-white text-xs font-bold ">
+                Sí, abandonar
               </button>
             </div>
           </div>
@@ -438,23 +438,23 @@ interface BoardSquare {
       <!-- MODAL DE FINAL DE PARTIDA -->
       @if (showGameOverModal()) {
         <div class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 fade-in">
-          <div class="w-full max-w-md bg-[#21201d] border border-chess-gold/80 rounded-2xl shadow-2xl p-6 sm:p-7 text-center">
+          <div class="w-full max-w-md bg-chess-card border border-chess-gold/80   p-6 sm:p-7 text-center">
             
-            <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-[#2a2824] border-2 border-chess-gold flex items-center justify-center text-3xl shadow-inner">
+            <div class="w-20 h-24 mx-auto mb-4 g-arch bg-chess-surface border border-chess-gold flex items-center justify-center text-4xl text-chess-gold ">
               @if (isWinner()) {
-                🏆
+                <span class="g-glyph" aria-hidden="true">&#9819;&#xFE0E;</span>
               } @else if (isDraw()) {
-                🤝
+                <span class="g-title" aria-hidden="true">½</span>
               } @else {
-                ♟️
+                <span class="g-glyph" aria-hidden="true">&#9823;&#xFE0E;</span>
               }
             </div>
 
-            <h2 class="text-2xl font-bold text-slate-100 tracking-tight">
+            <h2 class="text-5xl text-slate-100">
               @if (isWinner()) {
-                ¡Victoria Magistral!
+                Victoria
               } @else if (isDraw()) {
-                Partida en Tablas
+                Tablas
               } @else {
                 Derrota
               }
@@ -465,9 +465,9 @@ interface BoardSquare {
             </p>
 
             <!-- Variación de Elo -->
-            <div class="my-5 p-3 rounded-xl bg-[#181715] border border-[#363431] flex items-center justify-around">
+            <div class="my-5 p-3  bg-chess-bg border border-chess-border flex items-center justify-around">
               <div>
-                <span class="text-[10px] text-slate-400 uppercase tracking-widest block">Tu Elo</span>
+                <span class="text-[10px] text-slate-400   block">Tu Elo</span>
                 <span class="text-base font-bold font-mono text-slate-200">
                   {{ myRating() }}
                 </span>
@@ -483,8 +483,8 @@ interface BoardSquare {
             <!-- Botones Finales -->
             <div class="space-y-2">
               <a routerLink="/lobby" 
-                 class="w-full py-3 rounded-xl bg-chess-primary hover:bg-chess-primaryHover text-white font-bold text-sm shadow transition-all block">
-                Regresar a la Sala Principal
+                 class="w-full py-3  bg-chess-primary hover:bg-chess-primaryHover text-chess-bg font-bold text-sm  transition-all block">
+                Volver al lobby
               </a>
               <button type="button" 
                       (click)="showGameOverModal.set(false)"

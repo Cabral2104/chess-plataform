@@ -10,5 +10,5 @@ import { NavbarComponent } from './shared/components/navbar/navbar.component';
   styleUrl: './app.component.css'
 })
 export class AppComponent {
-  title = 'Chess Arena';
+  title = 'Jaque';
 }

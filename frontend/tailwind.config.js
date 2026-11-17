@@ -7,16 +7,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Paleta gótica: slate cálido para que text-slate-* lea como hueso/ceniza
+        slate: { 100: '#ECE6D8', 200: '#E0D9CA', 300: '#C9C1B2', 400: '#A39C90', 500: '#857E73', 600: '#5F5950', 700: '#4A4540', 800: '#2A2622', 900: '#1F1C19', 950: '#0F0D0B' },
         chess: {
-          bg: '#161512',           // Fondo oscuro cálido profesional (estilo torneo internacional)
-          surface: '#262421',      // Paneles y superficies elevadas
-          card: '#21201d',         // Tarjetas y modales
+          bg: '#0F0D0B',           // Fondo oscuro cálido profesional (estilo torneo internacional)
+          surface: '#1F1C19',      // Paneles y superficies elevadas
+          card: '#1A1815',         // Tarjetas y modales
           hover: '#302e2b',        // Estados hover sobrios
-          border: '#363431',       // Bordes sutiles y elegantes
+          border: '#4A4540',       // Bordes sutiles y elegantes
           borderLight: '#4a4742',  // Bordes activos
-          primary: '#81b64c',      // Verde clásico de ajedrez para acciones principales
-          primaryHover: '#98c862', // Hover del verde ajedrez
-          gold: '#c5a059',         // Oro envejecido/latón para Elo, trofeos y rangos
+          primary: '#ECE6D8',      // Hueso: acciones principales (texto oscuro encima)
+          primaryHover: '#C2A061', // Oro al pasar el cursor
+          gold: '#C2A061',         // Oro envejecido/latón para Elo, trofeos y rangos
           goldHover: '#d4b06b',
           squareLight: '#f0d9b5',  // Casilla clara clásica (madera cálida / marfil)
           squareDark: '#b58863',   // Casilla oscura clásica (nogal torneo)
@@ -28,8 +30,9 @@ module.exports = {
         }
       },
       fontFamily: {
-        sans: ['Outfit', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['"EB Garamond"', 'Georgia', 'serif'],
+        gothic: ['UnifrakturMaguntia', 'serif'],
+        mono: ['"EB Garamond"', 'Georgia', 'serif'],
       },
       boxShadow: {
         'chess': '0 4px 20px -2px rgba(0, 0, 0, 0.5)',
